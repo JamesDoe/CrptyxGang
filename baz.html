@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://unpkg.com/vue"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.0.1/d3.min.js"
+        integrity="sha512-1e0JvdNhUkvFbAURPPlFKcX0mWu/b6GT9e0uve7BW4MFxJ15q4ZCd/Llz+B7/oh+qhw7/l6Q1ObPt6aAuR01+Q=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdn.socket.io/3.1.3/socket.io.min.js"
+        integrity="sha384-cPwlPLvBTa3sKAgddT6krw0cJat7egBga3DJepJyrLl4Q9/5WLra3rrnMcyTyOnh"
+        crossorigin="anonymous"></script>
+
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+        }
+
+        .card {}
+
+        .y-labels {
+            font-size: .62em
+        }
+
+        input[type="file"] {
+            /*
+  * visuallyHidden class copied from HTML5 Boilerplate project:
+  * https://github.com/h5bp/html5-boilerplate/blob/9d6176a26ca4b70ab64a51d7abb9d3ebaa197855/dist/css/main.css#L135
+  *
+  * More: http://hugogiraudel.com/2016/10/13/css-hide-and-seek
+  */
+
+            /*
+  * Hide only visually, but have it available for screen readers:
+  * https://snook.ca/archives/html_and_css/hiding-content-for-accessibility
+  *
+  * 1. For long content, line feeds are not interpreted as spaces and small width
+  *    causes content to wrap 1 word per line:
+  *    https://medium.com/@jessebeach/beware-smushed-off-screen-accessible-text-5952a4c2cbfe
+  */
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            /* 1 */
+            clip-path: inset(50%);
+            border: 0;
+        }
+
+        .green {
+            color: green
+        }
+
+        label {
+            border: 1px solid;
+        }
+
+        label:hover {
+            background-color: grey;
+        }
+
+        /* When the visually hidden child input has focus, style the parent. */
+        label:focus-within {
+            outline: 5px solid;
+        }
+
+        .red {
+            color: red
+        }
+    </style>
+    <title>Document</title>
+</head>
+
+<body>
+    <div id="app">
+        <div>
+            <div style="display: flex;">
+
+                <div v-for="coin in my.watchlist" style="display:flex; align-items: center;">
+                    <img class="coin-logo" width="32" height="32"
+                        :src="`https://s2.coinmarketcap.com/static/img/coins/64x64/${coins_df.row(coin,'symbol')[0].id_coinmarketcap}.png`">
+                    {{coin}} price:${{CoinGecko_prices[coins_df.row(coin,'symbol')[0].id_coingecko].usd}}
+                    24hr change:{{CoinGecko_prices[coins_df.row(coin,'symbol')[0].id_coingecko].usd_24h_change>0?'+':'-'}}{{Math.round(CoinGecko_prices[coins_df.row(coin,'symbol')[0].id_coingecko].usd_24h_change, 2)}}%
+                    <!-- {{coin}} {{CoinGecko_prices[coin.toLowerCase()].usd}} -->
+                </div>
+            </div>
+            <div v-for="t in [my.transaction_to_append]">
+                <input type="text" size="2" v-model="my.transaction_to_append.shares">
+                <select v-model="my.ticker_to_append" name="" id="">
+                    <option v-for="token, i in coins_df.col('symbol').sort()">{{token}}</option>
+                </select>
+                <select v-model="my.transaction_to_append.type">
+                    <option v-for='type in ["buy","sell","distribution"]'>{{type}}</option>
+                </select>
+                <label for="tx_date">&nbsp;for&nbsp;</label>
+                $<input type="text" size="2" v-model="my.transaction_to_append.purchase_price">
+                <span>
+                    <label for="tx_date">&nbsp;on&nbsp;</label>
+                    <input type="date" id="tx_date" name="" value="2018-07-22" min="2018-01-01" max="2018-12-31">
+                </span>
+                <button
+                    :disabled="(my.ticker_to_append&&!!~my.tokens.indexOf(my.ticker_to_append))||!!~my.watchlist.indexOf(my.ticker_to_append)"
+                    @click="console.log(`adding ${my.ticker_to_append} to your tokens...`);my.watchlist.push(my.ticker_to_append); fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${my_tokens_as_html_params}&vs_currencies=usd&include_last_updated_at=true&include_24hr_change=true`).then(e => e.json()).then(e => CoinGecko_prices = e); console.log(`${my.ticker_to_append} added to your tokens...`); my.ticker_to_append='';">
+                    add to watchlist </button>
+                <button disabled> add transaction </button>
+                <label class="custom-file-upload">
+                    <input id="import_transaction_button" type="file"
+                        accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" />
+                    import transaction
+                </label>
+            </div>
+        </div>
+        <div class="card" style="display: flex; align-items: center" v-for="coin, coin_name in CoinGecko_prices">
+            <span style="font-size:1.62em">
+                {{coins_df.row(coin_name,'id_coingecko')[0].symbol}}&nbsp;${{coin.usd}}
+            </span>
+
+            <template v-for="s in [portfolio_stats[coins_df.row(coin_name,'id_coingecko')[0].symbol.toLowerCase()]]">
+                <div v-if="s">
+                    Δ{{s.shares*coin.usd-s.usd}}(<template
+                        v-for="x in [{pct: Math.round(((s.shares*coin.usd)/s.usd-1)*100)}]"><span
+                            :class="x.pct>0?'green':'red'">{{x.pct>0?'+':''}}{{x.pct}}</span></template>%)
+                    ε{{s.shares}} μ{{s.usd/s.shares}}
+                </div>
+            </template>
+            <div style="font-size: .62em">
+                <!-- hour: '2-digit', minute: '2-digit' -->
+                Last
+                updated:{{new Date(coin.last_updated_at*1000).toLocaleDateString('en-US', {hour: '2-digit', minute: '2-digit', second:'2-digit'})}}
+            </div>
+        </div>
+        <table v-if="transaction_df.col">
+            <template v-for="cols in [transaction_df.col()]">
+                <tr>
+                    <!-- <td v-for="name in cols">{{name}}</td> -->
+                    <td v-for="col in cols">{{col}}</td>
+                </tr>
+                <tr v-for="row in my.imported_transactions">
+                    <td v-for="col in cols">{{row[col]}}</td>
+                </tr>
+
+            </template>
+        </table>
+        <div id="my_dataviz"></div>
+    </div>
+</body>
+
+<script src="config.js"></script>
+<script>
+    if (window.FileReader) console.log('FileReader supported...')
+    let _paused;
+
+    async function _thump() {
+
+        _paused = true;
+        let foo = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${app.my_tokens_as_html_params}&vs_currencies=usd&include_last_updated_at=true&include_24hr_change=true`);
+        foo = await foo.json()
+        app.CoinGecko_prices = foo;
+        _paused = false;
+    }
+    function _heartbeat() {
+        return setTimeout(async () => {
+            await _thump();
+            while (_paused) await wait(1000);
+            _heartbeat();
+        }, 15000)
+    };
+
+    const app = new Vue({
+        el: "#app",
+        methods: {
+            fetch(url) {
+                return fetch(url);
+            }
+        },
+        data: {
+            console,
+            CoinGecko_prices: {},
+            coins,
+            my: {
+                imported_transactions: [],
+                ticker_to_append: '',
+                tokens: [],
+                _tokens: ['algorand', 'bitcoin'],
+                transaction_to_append: { 'date': 'foo', 'tx_usd': 'bar', 'shares': 0, 'type': '', 'ticker': '', 'purchase_price': 0 },
+                watchlist: []
+            },
+            transaction_df: {}
+        },
+        mounted() {
+            /*
+            const socket = io("http://localhost:8080");
+            // console.log(socket)
+            socket.on("connect", () => {
+                console.log(socket.id); // x8WIv7-mJelg7on_ALbx
+            });
+            socket.on("details", (...args) => {
+                console.log(args)
+            });
+*/
+
+            fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${this.my_tokens_as_html_params}&vs_currencies=usd&include_last_updated_at=true&include_24hr_change=true`).then(e => e.json()).then(e => this.CoinGecko_prices = e);
+            _heartbeat();
+
+            bar = new DataFrame(btc.price, ['date', 'price']);
+            btc_price_hist_price = bar.col('price')
+            btc_price_hist_date = bar.col('date').map(e => new Date(e))
+            btc_price_hist_date_extent = d3.extent(btc_price_hist_date)
+            baz = new DataFrame(btc.ath, ['date', 'price']);
+            btc_ath_hist_price = baz.col('price')
+            btc_ath_hist_date = baz.col('date').map(e => new Date(e))
+            btc_ath_hist_date_extent = d3.extent(btc_ath_hist_date)
+
+            margin = { top: 10, right: 30, bottom: 30, left: 50 },
+                width = 460 - margin.left - margin.right,
+                height = 400 - margin.top - margin.bottom;
+            var svg = d3.select("#my_dataviz")
+                .append("svg")
+                .attr("width", width + margin.left + margin.right)
+                .attr("height", height + margin.top + margin.bottom)
+                .append("g")
+                .attr("transform",
+                    "translate(" + margin.left + "," + margin.top + ")");
+
+            // Add X axis --> it is a date format
+            x = d3.scaleTime()
+                .domain(btc_price_hist_date_extent)
+                .range([0, width]).nice();
+            svg.append("g")
+                .attr("transform", "translate(0," + height + ")")
+                .call(d3.axisBottom(x));
+
+            // Add Y axis
+            y = d3.scaleLinear()
+                .domain([0, btc_price_hist_price_extent])
+                .range([height, 0]).nice();
+            svg.append("g")
+                .call(d3.axisLeft(y));
+            console.log(btc_price_hist_date, btc_price_hist_price)
+            var line = d3.line()
+                .curve(d3.curveStepAfter)
+                .x(d => x(d[0]))
+                .y(d => y(d[1]))
+            console.log(d3.zip(btc_price_hist_date, btc_price_hist_price))
+            svg.append("path")
+                .attr("d", line(d3.zip(btc_price_hist_date, btc_price_hist_price)))
+                // .attr("d", line((portfolio_perf_snapshots.filter((e, i) => !i || portfolio_perf_snapshots[i - 1][1] !== e[1]))))
+                .attr("stroke", "#305280")
+                .attr("stroke-width", 3)
+                .attr("fill", "none")
+                .attr("shape-rendering", "crispEdges")
+
+        },
+        computed: {
+            coins_df() {
+                return new DataFrame(this.coins, ['name', 'symbol', 'id_coinmarketcap', 'name_coinmarketcap', 'id_coingecko', 'name_coingecko'])
+            },
+            my_tokens_as_html_params() {
+                let foo = this.my.tokens.concat(this.my.watchlist).map(t => this.coins_df.row(t, 'symbol')[0].id_coingecko).join('%2C')
+                return foo;
+            },
+            portfolio_stats() {
+                // console.log being used to rerun my_tokens_as_html_params
+                console.log(this.my_tokens_as_html_params)
+                if (!this.transaction_df.col) return {}
+                this.my.tokens = Array.from(new Set(this.transaction_df.col('ticker'))).map(s => s.toUpperCase());
+                return Object.fromEntries(Object.entries(this.my.imported_transactions.reduce((a, c) => {
+                    let { usd, shares, type } = c;
+                    (a[c.ticker] || (a[c.ticker] = [])).push({ usd, shares, type })
+                    return a;
+                }, {})).map(e => {
+                    let foo = { usd: 0, shares: 0 };
+                    e[1].forEach(f => {
+                        foo.shares += Number(f.shares);
+                        foo.usd += Number(f.usd);
+                    })
+                    return [e[0], foo]
+                }))
+            },
+            _watchlist() {
+                return this.my.watchlist.map(e=>e.toLowerCase())
+            }
+        }
+    })
+
+    function DataFrame(data, col_headers, rows_labels) {
+        if (!col_headers) col_headers = data.splice(0, 1)[0];
+        let rows = {};
+        data = data.filter(r => r.some(rr => rr));
+        data.forEach((e, i) => {
+            e.forEach((ee, ii) => {
+                (rows[ee.toString()] || (rows[ee.toString()] = [])).push([i.toString(), ii.toString()])
+            })
+        })
+        let
+            cols = col_headers.reduce((a, c, i) => {
+                a[c] = data.map(e => e[i]);
+                return a;
+            }, {})
+        return {
+            col(col_name) {
+                if (!col_name) return col_headers
+                return cols[col_name]
+            },
+            // groupby(col_name) {
+            //     let i = col_headers.indexOf(col_name)
+            //     console.log(data.reduce((a,c)=>{
+            //         (a[c[i]]||(a[c[i]]=[])).push()
+            //         return a;
+            //     },{}))
+            // },
+            row(row_value, col_name) {
+                if (!row_value) return data.map(r => Object.fromEntries(d3.zip(col_headers, r)));
+                if (col_name) return rows[row_value] && rows[row_value].map(r => data[r[0]]).filter(r => r[col_headers.indexOf(col_name)] == row_value).map(r => d3.zip(col_headers, r)).map(r => Object.fromEntries(r));
+                return rows[row_value] && Array.from(new Set(rows[row_value].map(r => r[0]))).map(r => data[r[0]]);
+            }
+        };
+    }
+    // let bar = [
+    //     ['a', 'b'],
+    //     [1, 2],
+    //     [3, 4]
+    // ];
+    function import_csv() {
+        console.log(this.files[0])
+        var reader = new FileReader();
+        reader.readAsText(this.files[0]);
+        reader.onload = (event) => {
+            app.my.imported_transactions = (app.transaction_df = new DataFrame(event.target.result.replace(/\"(\d{1,3}(?:,\d{3})+)\"/, (a, b) => parseFloat(b.replace(/,/g, ''))).split(/\r\n|\n/).map(r => r.split(',')))).row();
+            // console.log being used to rerun potfolio_stats
+            console.log(app.portfolio_stats)
+            fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${app.my_tokens_as_html_params}&vs_currencies=usd&include_last_updated_at=true&include_24hr_change=true`).then(e => e.json()).then(e => app.CoinGecko_prices = e);
+        };
+        reader.onerror = (event) => console.log(event.target.error.name);
+    }
+    document.getElementById("import_transaction_button").addEventListener("change", import_csv, false);
+    console.log(app.coins_df.row())
+</script>
+
+</html>
