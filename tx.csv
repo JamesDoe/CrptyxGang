@@ -1,0 +1,10 @@
+ticker,usd,date,shares,platform,type,target,soft_target,purchase_price
+matic,50,7/28/2021,35.4,kucoin,buy,7/28/2022,,1.412429379
+vet,50,9/3/2021,340,kucoin,buy,100,,0.147058824
+btc,20,5/31/2021,0.00053192,kucoin,buy,,,37599.63904
+btc,20,6/7/2021,0.000579,coinbase,buy,"100,000",,34542.31434
+algo,50,6/16/2021,48.076,kraken,buy,,,1.040019968
+algo,0,7/5/2021,0.1251718,kraken,distribution,,,0
+algo,0,8/5/2021,0.21887885,kraken,distribution,,,0
+algo,0,9/4/2021,0.20866356,kraken,distribution,,,0
+,,,,,,,,
