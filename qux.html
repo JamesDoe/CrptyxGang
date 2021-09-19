@@ -1,0 +1,309 @@
+<!-- Code from d3-graph-gallery.com -->
+<!DOCTYPE html>
+<meta charset="utf-8">
+
+<head>
+  <!-- Load d3.js -->
+  <script src="https://d3js.org/d3.v4.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/vue"></script>
+
+  <style>
+    body {
+      font-family: 'Roboto', sans-serif;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="app">
+    <!-- Create a div where the graph will take place -->
+    <div>
+      <div style="display: flex">
+        <div>BTC</div>
+        <div>(YTD)</div>
+      </div>
+      <div id="my_dataviz"></div>
+    </div>
+  </div>
+</body>
+<script src="bar.js"></script>
+<script src="config.js"></script>
+
+<script>
+  const months_as_initials = ["J", "F", "M", "A", "M", "J", "J", "A", "S", "O", "N", "D"]
+  const h = 400 * .618, w = 400 * 1.618, date_parser = d3.timeParse("%Y%m%d");;
+  var dates;
+
+  const app = new Vue({
+    el: "#app",
+    data: {
+    },
+    computed: {
+
+      
+    },
+    mounted() {
+      // ath = []
+      // btc.price.forEach(e=>{if(e[1]>ath.at(-1)[1])ath.push(e)})
+      bar = new DataFrame(btc.price, ['date', 'price']);
+      btc_price_hist_date = bar.col('date').map(e => new Date(e))
+      btc_price_hist_price = bar.col('price')
+      btc_price_hist_date_extent = d3.extent(btc_price_hist_date)
+      btc_price_hist_price_extent = d3.extent(btc_price_hist_price)
+      baz = new DataFrame(btc.ath, ['date', 'price']);
+      btc_ath_hist_price = baz.col('price')
+      btc_ath_hist_date = baz.col('date').map(e => new Date(e))
+      btc_ath_hist_date_extent = d3.extent(btc_ath_hist_date)
+      // set the dimensions and margins of the graph
+      var margin = { top: 10, right: 30, bottom: 30, left: 50 },
+        width = w - margin.left - margin.right,
+        height = h - margin.top - margin.bottom;
+
+      // append the svg object to the body of the page
+      var svg = d3.select("#my_dataviz")
+        .append("svg")
+        // .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+        .attr("viewBox", `0 0 ${width + margin.left + margin.right} ${height + margin.top + margin.bottom}`)
+        .append("g")
+        .attr("transform",
+          "translate(" + margin.left + "," + margin.top + ")");
+
+
+
+
+
+      var x = d3.scaleTime()
+        .domain(btc_price_hist_date_extent)
+        .range([0, width])
+        .nice();
+      var y = d3.scaleLinear()
+        .domain([btc_price_hist_price_extent[0], btc_price_hist_price_extent[1]])
+        .range([height, 0])
+        .nice();
+      // https://stackoverflow.com/questions/18151455/d3-js-create-objects-on-top-of-each-other/18461464
+      // var v_rules = svg.append("g")
+      //   .attr("class", "v_rules")
+      // v_rules.selectAll(".rect")
+      //   .data(dates)
+      //   .enter()
+      //   .append("rect")
+      //   .attr("x", d => x(d))
+      //   .attr("y", 0)
+      //   .attr("width", 2)
+      //   .attr("height", height)
+      //   .attr("fill", "#F1FCFA");
+
+      var h_rules = svg.append("g")
+        .attr("class", "h_rules")
+
+      h_rules.selectAll(".rect")
+        .data(y.ticks())
+        .enter()
+        .append("rect")
+        .attr("x", 0)
+        .attr("y", d => y(d) - 1.5)
+        .attr("width", width)
+        .attr("height", 3)
+        .attr("fill", "#CBEDE5");
+
+      svg.append("g")
+        .attr("transform", "translate(0," + height + ")")
+        .call(d3.axisBottom(x).tickFormat((d, i) => months_as_initials[d.getMonth()]));
+
+
+      // .nice();
+      svg.append("g")
+        .call(d3.axisLeft(y));
+
+      var line = d3.line()
+        .curve(d3.curveCardinal)
+        .x(d => x(d[0]))
+        .y(d => y(d[1]))
+
+
+      btc_ath_hist_date.push(btc_price_hist_date_extent[1])
+      btc_ath_hist_price.push(btc_ath_hist_price.at(-1))
+
+      svg.append("path")
+        .datum(d3.zip(btc_ath_hist_date, btc_ath_hist_price))
+        .attr("fill", "#9BD4C7")
+        .attr("fill-opacity", ".38")
+        .attr("stroke", "#69b3a2")
+        .attr("stroke-width", 1.5)
+        .attr("d", d3.area()
+          .curve(d3.curveStepAfter)
+          .x(d => x(d[0]))
+          .y0(height)
+          .y1(d => y(d[1]))
+        )
+
+      avg = (arr) => arr.reduce((a, b) => a + b, 0) / arr.length
+      svg.append("path")
+        .attr("d", line(d3.zip(btc_price_hist_date, btc_price_hist_price)))
+        // .attr("d", line((portfolio_perf_snapshots.filter((e, i) => !i || portfolio_perf_snapshots[i - 1][1] !== e[1]))))
+        .attr("stroke", "gray")
+        .attr("stroke-width", 1.62)
+        .attr("fill", "none")
+      // .attr("shape-rendering", "crispEdges")
+      var window_size1 = 30;
+      var window_size2 = 90;
+      // calculate_sma(btc_price_hist_price).length == btc_price_hist_date.slice(window_size).length
+      svg.append("path")
+        .attr("d", line(d3.zip(btc_price_hist_date.slice(window_size1), calculate_sma(btc_price_hist_price, window_size1))))
+        // .attr("d", line((portfolio_perf_snapshots.filter((e, i) => !i || portfolio_perf_snapshots[i - 1][1] !== e[1]))))
+        .attr("stroke", "red")
+        .attr("stroke-width", 1.62)
+        .attr("fill", "none")
+      // .attr("shape-rendering", "crispEdges")
+
+      svg.append("path")
+        .attr("d", line(d3.zip(btc_price_hist_date.slice(window_size2), calculate_ema(btc_price_hist_price, window_size2))))
+        // .attr("d", line((portfolio_perf_snapshots.filter((e, i) => !i || portfolio_perf_snapshots[i - 1][1] !== e[1]))))
+        .attr("stroke", "blue")
+        .attr("stroke-width", 1.62)
+        .attr("fill", "none")
+      // .attr("shape-rendering", "crispEdges")
+
+
+
+      // console.log(portfolio_perf_snapshots2)
+      // console.log(quux.map((e,i)=>i?(e[i-1]||0)+(e||0):(e||0)))
+
+      function DataFrame(data, col_headers, rows_labels) {
+        // console.log(data)
+        if (!col_headers) col_headers = data.splice(0, 1)[0];
+        // console.log(col_headers)
+        let
+          cols = col_headers.reduce((a, c, i) => {
+            // console.log(c)
+            a[c] = data.map(e => e[i]);
+            return a;
+          }, {});
+
+        return {
+          col(col_name) {
+            // console.log(cols)
+            return cols[col_name]
+          },
+          col_headers: (function () { return JSON.parse(JSON.stringify(col_headers)) }()),
+          rows: (function () { return JSON.parse(JSON.stringify(data)) }())
+        };
+      }
+
+      function calculate_sma(data, windows_size) {
+        return data.slice(windows_size - 1).map((e, i) => avg([data[i], ...data.slice(i + 1, windows_size + i)]))
+        // return data.slice(windows_size).map((e, i) => avg(data.slice(i, windows_size + i)))
+      }
+      function calculate_ema(data, windows_size) {
+        return data.slice(windows_size - 1).map((e, i) => _ema([data[i], ...data.slice(i + 1, windows_size + i)], windows_size))
+        // return data.slice(windows_size).map((e, i) => avg(data.slice(i, windows_size + i)))
+      }
+      function _ema(data, window_size, s_factor = 2) {
+        data = JSON.parse(JSON.stringify(data));
+        const k = s_factor / (window_size + 1);
+        // console.log(k)
+        let emaData = []
+        emaData[0] = data[0]
+        for (let i = 1; i < data.length; i++) {
+          let newPoint = (data[i] * k) + (emaData[i - 1] * (1 - k))
+          emaData.push(newPoint)
+        }
+        let currentEma = [...emaData].pop()
+        console.log(currentEma)
+        return +currentEma.toFixed(2)
+      }
+
+
+      function cumulative_sum(quux) {
+        let quuz = []
+        quux.forEach((e, i) => quuz.push((quuz[i - 1] || 0) + (e || 0)))
+        return quuz
+      }
+      function run_val(quux) {
+        let quuz = [];
+        quux.forEach((e, i) => {
+          quuz.push(e || quuz[i - 1] || 0)
+        })
+        // quux.forEach((e, i) => { return quuz.push(e || quux[i - 1] || 0) })
+        // console.log(quuz)
+        return quuz
+      }
+
+
+      //             svg.selectAll("circle")
+      // .data((portfolio_perf_snapshots.filter((e, i) => !i || portfolio_perf_snapshots[i - 1][1] !== e[1])))
+      // .enter().append("circle")
+      // .style("stroke", "gray")
+      // .style("fill", "black")
+      // .attr("r", 40)
+      // .attr("cx", 50)
+      // .attr("cy", 20);
+      // inputs_cum = inputs_cum.filter((e, i) => !i || inputs_cum[i - 1][1] !== e[1])
+
+
+      // svg.selectAll('.circle')
+      //   .data(inputs_cum)
+      //   .enter().append('circle')
+      //   .attr('r', 3 * 1.618)
+      //   .attr('cx', d => x(d[0]))
+      //   .attr('cy', d => y(d[1]))
+      //   .attr('fill', '#69b3a2')
+
+      // svg.selectAll('.circle')
+      //   .data(inputs_cum)
+      //   .enter().append('circle')
+      //   .attr('fill', 'white')
+      //   .attr('r', 3)
+      //   .attr('cx', d => x(d[0]))
+      //   .attr('cy', d => y(d[1]));
+
+
+
+      // //Read the data
+      // d3.csv("https://raw.githubusercontent.com/holtzy/data_to_viz/master/Example_dataset/3_TwoNumOrdered_comma.csv",
+
+      //   // When reading the csv, I must format variables:
+      //   function (d) {
+      //     return { date: d3.timeParse("%Y-%m-%d")(d.date), value: d.value }
+      //   },
+
+      //   // Now I can use this dataset:
+      //   function (data) {
+      //     app.dates = d3.extent(data.map(e => e.date))
+      //     // Add X axis --> it is a date format
+      //     var x = d3.scaleTime()
+      //       // .domain(d3.extent(data, function (d) { return d.date; }))
+      //       .domain(app.dates)
+      //       .range([0, width])
+      //       .nice();
+      //     svg.append("g")
+      //       .attr("transform", "translate(0," + height + ")")
+      //       .call(d3.axisBottom(x));
+
+      //     // Add Y axis
+      //     var y = d3.scaleLinear()
+      //       .domain([0, d3.max(data, function (d) { return +d.value; })])
+      //       .range([height, 0])
+      //       .nice();
+      //     svg.append("g")
+      //       .call(d3.axisLeft(y));
+
+      //     // Add the area
+      //     svg.append("path")
+      //       .datum(data)
+      //       .attr("fill", "#cce5df")
+      //       .attr("stroke", "#69b3a2")
+      //       .attr("stroke-width", 1.5)
+      //       .attr("d", d3.area()
+      //         .x(function (d) { return x(d.date) })
+      //         .y0(y(0))
+      //         .y1(function (d) { return y(d.value) })
+      //       )
+
+      //   })
+    }
+  });
+
+</script>
