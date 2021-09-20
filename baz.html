@@ -4,7 +4,7 @@
 <head>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Oswald&display=swap" rel="stylesheet">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://unpkg.com/vue"></script>
@@ -88,7 +88,8 @@
                     <img class="coin-logo" width="32" height="32"
                         :src="`https://s2.coinmarketcap.com/static/img/coins/64x64/${coins_df.row(coin,'symbol')[0].id_coinmarketcap}.png`">
                     {{coin}} price:${{CoinGecko_prices[coins_df.row(coin,'symbol')[0].id_coingecko].usd}}
-                    24hr change:{{CoinGecko_prices[coins_df.row(coin,'symbol')[0].id_coingecko].usd_24h_change>0?'+':'-'}}{{Math.round(CoinGecko_prices[coins_df.row(coin,'symbol')[0].id_coingecko].usd_24h_change, 2)}}%
+                    24hr
+                    change:{{CoinGecko_prices[coins_df.row(coin,'symbol')[0].id_coingecko].usd_24h_change>0?'+':''}}{{Math.round(CoinGecko_prices[coins_df.row(coin,'symbol')[0].id_coingecko].usd_24h_change, 2)}}%
                     <!-- {{coin}} {{CoinGecko_prices[coin.toLowerCase()].usd}} -->
                 </div>
             </div>
@@ -118,28 +119,35 @@
                 </label>
             </div>
         </div>
-        <div class="card" style="display: flex; align-items: center" v-for="coin, coin_name in CoinGecko_prices">
-            <span style="font-size:1.62em">
-                {{coins_df.row(coin_name,'id_coingecko')[0].symbol}}&nbsp;${{coin.usd}}
-            </span>
-
-            <template v-for="s in [portfolio_stats[coins_df.row(coin_name,'id_coingecko')[0].symbol.toLowerCase()]]">
-                <div v-if="s">
-                    Δ{{s.shares*coin.usd-s.usd}}(<template
-                        v-for="x in [{pct: Math.round(((s.shares*coin.usd)/s.usd-1)*100)}]"><span
-                            :class="x.pct>0?'green':'red'">{{x.pct>0?'+':''}}{{x.pct}}</span></template>%)
-                    ε{{s.shares}} μ{{s.usd/s.shares}}
+        <div class="card" v-for="coin, coin_name in CoinGecko_prices">
+            <div>
+                <div style="font-size:.8rem; line-height: 1rem; font-weight:400; color: gray">
+                    {{coins_df.row(coin_name,'id_coingecko')[0].name_coingecko}}
                 </div>
-            </template>
-            <div style="font-size: .62em">
-                <!-- hour: '2-digit', minute: '2-digit' -->
-                Last
-                updated:{{new Date(coin.last_updated_at*1000).toLocaleDateString('en-US', {hour: '2-digit', minute: '2-digit', second:'2-digit'})}}
+                <div style="line-height: 2rem; font-size:2.618rem; font-family: Oswald;">
+                    {{coins_df.row(coin_name,'id_coingecko')[0].symbol}}&nbsp;{{coin.usd}}
+                </div>
+                <template
+                    v-for="s in [portfolio_stats[coins_df.row(coin_name,'id_coingecko')[0].symbol.toLowerCase()]]">
+                    <div style="font-size:.8rem; line-height: 1.618rem" v-if="s">
+                        δ{{s.shares*coin.usd-s.usd}}<template
+                            v-for="x in [{pct: Math.round(((s.shares*coin.usd)/s.usd-1)*100)}]"><sub style="font-size: .62em"
+                                :class="x.pct>0?'green':'red'"> {{x.pct>0?'+':''}}{{x.pct}}%</sub></template>
+                        ε{{s.shares}} μ{{s.usd/s.shares}}
+                    </div>
+                </template>
+                <div style="font-size: .62em">
+                    <!-- hour: '2-digit', minute: '2-digit' -->
+                    <!-- Last
+                updated:{{new Date(coin.last_updated_at*1000).toLocaleDateString('en-US', {hour: '2-digit', minute: '2-digit', second:'2-digit'})}} -->
+                </div>
             </div>
+
+
         </div>
         <table v-if="transaction_df.col">
             <template v-for="cols in [transaction_df.col()]">
-                <tr>
+                <tr style="font-family: Oswald; font-size: .62rem; text-transform: uppercase;">
                     <!-- <td v-for="name in cols">{{name}}</td> -->
                     <td v-for="col in cols">{{col}}</td>
                 </tr>
@@ -286,7 +294,7 @@
                 }))
             },
             _watchlist() {
-                return this.my.watchlist.map(e=>e.toLowerCase())
+                return this.my.watchlist.map(e => e.toLowerCase())
             }
         }
     })
