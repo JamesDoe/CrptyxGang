@@ -17,6 +17,12 @@
         crossorigin="anonymous"></script>
 
     <style>
+        .bearCandle {
+            fill: white;
+            stroke-width: 1;
+            stroke: black;
+        }
+
         body {
             font-family: 'Roboto', sans-serif;
         }
@@ -85,7 +91,7 @@
             <div style="display: flex;">
 
                 <div v-for="coin in my.watchlist" style="display:flex; align-items: center;">
-                    <img class="coin-logo" width="32" height="32"
+                    <img class="coin-logo" width="24" height="24"
                         :src="`https://s2.coinmarketcap.com/static/img/coins/64x64/${coins_df.row(coin,'symbol')[0].id_coinmarketcap}.png`">
                     {{coin}} price:${{CoinGecko_prices[coins_df.row(coin,'symbol')[0].id_coingecko].usd}}
                     24hr
@@ -108,7 +114,7 @@
                     <input type="date" id="tx_date" name="" value="2018-07-22" min="2018-01-01" max="2018-12-31">
                 </span>
                 <button
-                    :disabled="(my.ticker_to_append&&!!~my.tokens.indexOf(my.ticker_to_append))||!!~my.watchlist.indexOf(my.ticker_to_append)"
+                    :disabled="!my.ticker_to_append||(my.ticker_to_append&&!!~my.tokens.indexOf(my.ticker_to_append))||!!~my.watchlist.indexOf(my.ticker_to_append)"
                     @click="console.log(`adding ${my.ticker_to_append} to your tokens...`);my.watchlist.push(my.ticker_to_append); fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${my_tokens_as_html_params}&vs_currencies=usd&include_last_updated_at=true&include_24hr_change=true`).then(e => e.json()).then(e => CoinGecko_prices = e); console.log(`${my.ticker_to_append} added to your tokens...`); my.ticker_to_append='';">
                     add to watchlist </button>
                 <button disabled> add transaction </button>
@@ -119,7 +125,7 @@
                 </label>
             </div>
         </div>
-        <div class="card" v-for="coin, coin_name in CoinGecko_prices">
+        <div class="card" v-for="coin, coin_name in _CoinGecko_prices">
             <div>
                 <div style="font-size:.8rem; line-height: 1rem; font-weight:400; color: gray">
                     {{coins_df.row(coin_name,'id_coingecko')[0].name_coingecko}}
@@ -130,10 +136,11 @@
                 <template
                     v-for="s in [portfolio_stats[coins_df.row(coin_name,'id_coingecko')[0].symbol.toLowerCase()]]">
                     <div style="font-size:.8rem; line-height: 1.618rem" v-if="s">
-                        δ{{s.shares*coin.usd-s.usd}}<template
-                            v-for="x in [{pct: Math.round(((s.shares*coin.usd)/s.usd-1)*100)}]"><sub style="font-size: .62em"
-                                :class="x.pct>0?'green':'red'"> {{x.pct>0?'+':''}}{{x.pct}}%</sub></template>
-                        ε{{s.shares}} μ{{s.usd/s.shares}}
+                        ε{{s.shares}} x̅{{s.usd/s.shares}} δ{{s.shares*coin.usd-s.usd}}<template
+                            v-for="x in [{pct: Math.round(((s.shares*coin.usd)/s.usd-1)*100)}]"><sub
+                                style="font-size: .62em" :class="x.pct>0?'green':'red'">
+                                {{x.pct>0?'+':''}}{{x.pct}}%</sub></template>
+
                     </div>
                 </template>
                 <div style="font-size: .62em">
@@ -157,13 +164,103 @@
 
             </template>
         </table>
+        <svg :width="width + margin.left + margin.right" :height="height + margin.top + margin.bottom"
+            :style='"transform: translate(" + margin.left + "," + margin.top + ")"'
+            :viewBox="`0 0 ${width + margin.left + margin.right} ${height + margin.top + margin.bottom}`"
+            xmlns="http://www.w3.org/2000/svg">
+            <!--
+            with relative unit such as percentage, the visual size
+            of the square looks unchanged regardless of the viewBox
+            -->
+            <!-- <rect x="0" y="0" width="100%" height="100%"/> -->
+            <rect style="fill:honeydew" v-for="t in candles_y.ticks().sort(function(a, b){return b-a}).slice(1)" :x="0"
+                :y="candles_y(t)-1" :width="width" height="2" />
+            <rect v-for="dp in ohlc" :x="candles_x(new Date(dp[0]))-1" :y="candles_y(dp[2])" width="2"
+                :height="Math.abs(candles_y(dp[2])-candles_y(dp[3]))" />
+            <!-- <text v-for="dp in ohlc" :x="candles_x(new Date(dp[0]))-1" :y="candles_y(dp[2])">{{dp[2]}}</text> -->
+            <!-- <text v-for="dp in ohlc" :x="candles_x(new Date(dp[0]))-1" :y="candles_y(dp[3])">{{dp[3]}}</text> -->
+            <!-- <rect v-for="dp in btc.ohlc" :x="candles_x(new Date(dp[0]))-1" :y="candles_y(dp[2])" width="2"
+                :height="Math.abs(candles_y(dp[2])-candles_y(dp[3]))" /> -->
+            <rect v-for="dp in ohlc" :class="{bearCandle:candles_y(dp[1])-candles_y(dp[4])>0}"
+                :x="candles_x(new Date(dp[0]))-3" :y="candles_y(Math.max(dp[1],dp[4]))" width="6"
+                :height="Math.abs(candles_y(dp[1])-candles_y(dp[4]))" />
+            <text v-for="t in candles_x.ticks()" :x="candles_x(new Date(t))" y="20"
+                class="small">{{new Date(t).getHours().toString().padStart(2,"0")}}:{{new Date(t).getMinutes().toString().padStart(2,"0")}}</text>
+            <text style="dominant-baseline: central" v-for="t in candles_y.ticks()" :x="width+30" :y=candles_y(t)
+                class="small">{{t}}</text>
+            <!--
+            with a large viewBox the circle looks small
+            as it is using user units for the r attribute:
+            4 resolved against 100 as set in the viewBox
+            -->
+            <!-- <circle cx="50%" cy="50%" r="4" fill="white"/> -->
+        </svg>
         <div id="my_dataviz"></div>
     </div>
 </body>
 
 <script src="config.js"></script>
 <script>
+    function σ(arr) {
+        let n = arr.length, mean = arr.reduce((a, b) => a + b) / n, x̃;
+        return { σ: Math.sqrt(arr.map(e => Math.pow(e - mean, 2)).reduce((a, b) => a + b) / n), mean, x: median(arr) }
+    }
+    function filter_outliers(arr) {
+        let std_dev = σ(arr),
+            min = std_dev.mean - 3 * std_dev.σ,
+            max = std_dev.mean + 3 * std_dev.σ;
+        console.log(max)
+        return arr.filter(e => max >= e && e >= min)
+    }
+
+    function median(values) {
+        if (values.length === 0) throw new Error("No inputs");
+
+        values.sort(function (a, b) {
+            return a - b;
+        });
+
+        var half = Math.floor(values.length / 2);
+
+        if (values.length % 2)
+            return values[half];
+
+        return (values[half - 1] + values[half]) / 2.0;
+    }
+
     if (window.FileReader) console.log('FileReader supported...')
+    window.indexedDB = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.OIndexedDB || window.msIndexedDB,
+        IDBTransaction = window.IDBTransaction || window.webkitIDBTransaction || window.OIDBTransaction || window.msIDBTransaction,
+        dbVersion = 1;
+    if (window.indexedDB && IDBTransaction) console.log('indexedDB supported...')
+    // Create/open database
+    var request = indexedDB.open("elephantFiles", dbVersion);
+
+    request.onsuccess = function (event) {
+        console.log("Success creating/accessing IndexedDB database");
+        db = request.result;
+
+        db.onerror = function (event) {
+            console.log("Error creating/accessing IndexedDB database");
+        };
+
+        // Interim solution for Google Chrome to create an objectStore. Will be deprecated
+        if (db.setVersion) {
+            if (db.version != dbVersion) {
+                var setVersion = db.setVersion(dbVersion);
+                setVersion.onsuccess = function () {
+                    createObjectStore(db);
+                    getImageFile();
+                };
+            }
+            else {
+                // getImageFile();
+            }
+        }
+        else {
+            // getImageFile();
+        }
+    }
     let _paused;
 
     async function _thump() {
@@ -190,9 +287,14 @@
             }
         },
         data: {
+            ohlc: [],
+            btc,
             console,
             CoinGecko_prices: {},
             coins,
+            margin: { top: 10, right: 30, bottom: 30, left: 50 },
+            w: 1000,
+            h: 380,
             my: {
                 imported_transactions: [],
                 ticker_to_append: '',
@@ -214,6 +316,7 @@
                 console.log(args)
             });
 */
+            fetch("https://api.coingecko.com/api/v3/coins/bitcoin/ohlc?vs_currency=usd&days=1").then(e => e.json()).then(e => console.log(this.ohlc = e))
 
             fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${this.my_tokens_as_html_params}&vs_currencies=usd&include_last_updated_at=true&include_24hr_change=true`).then(e => e.json()).then(e => this.CoinGecko_prices = e);
             _heartbeat();
@@ -266,8 +369,24 @@
                 .attr("fill", "none")
                 .attr("shape-rendering", "crispEdges")
 
+            console.log('foo')
+            $app.forceUpdate();
         },
         computed: {
+            _CoinGecko_prices() {
+                let _watchlist = this.my.watchlist.map(e => this.coins_df.row(e, 'symbol')[0].id_coingecko)
+                return Object.fromEntries(Object.entries(this.CoinGecko_prices).filter(e => !~_watchlist.indexOf(e[0])));
+            },
+            candles_x() {
+                return d3.scaleLinear()
+                    .domain(d3.extent(this.ohlc.map(e => new Date(e[0]))))
+                    .range([0, this.width]).nice();
+            },
+            candles_y() {
+                return d3.scaleLinear()
+                    .domain(d3.extent(this.ohlc.map(e => e.slice(1)).flat()))
+                    .range([this.height, 0]).nice();
+            },
             coins_df() {
                 return new DataFrame(this.coins, ['name', 'symbol', 'id_coinmarketcap', 'name_coinmarketcap', 'id_coingecko', 'name_coingecko'])
             },
@@ -295,7 +414,9 @@
             },
             _watchlist() {
                 return this.my.watchlist.map(e => e.toLowerCase())
-            }
+            },
+            width() { return this.w - this.margin.left - this.margin.right },
+            height() { return this.h - this.margin.top - this.margin.bottom }
         }
     })
 
