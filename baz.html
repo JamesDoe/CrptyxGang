@@ -165,7 +165,6 @@
             </template>
         </table>
         <svg :width="width + margin.left + margin.right" :height="height + margin.top + margin.bottom"
-            :style='"transform: translate(" + margin.left + "," + margin.top + ")"'
             :viewBox="`0 0 ${width + margin.left + margin.right} ${height + margin.top + margin.bottom}`"
             xmlns="http://www.w3.org/2000/svg">
             <!--
@@ -173,8 +172,10 @@
             of the square looks unchanged regardless of the viewBox
             -->
             <!-- <rect x="0" y="0" width="100%" height="100%"/> -->
-            <rect style="fill:honeydew" v-for="t in candles_y.ticks().sort(function(a, b){return b-a}).slice(1)" :x="0"
-                :y="candles_y(t)-1" :width="width" height="2" />
+            <rect style="fill: none; stroke:whitesmoke; stroke-width: 2; stroke-dasharray: 2"
+                v-for="t in candles_y.ticks()" :x="0" :y="candles_y(t)" width=100% height="1" />
+            <!-- <rect style="fill:honeydew" v-for="t in candles_y.ticks()" :x="0"
+                :y="candles_y(t)-1" :width="width" height="2" /> -->
             <rect v-for="dp in ohlc" :x="candles_x(new Date(dp[0]))-1" :y="candles_y(dp[2])" width="2"
                 :height="Math.abs(candles_y(dp[2])-candles_y(dp[3]))" />
             <!-- <text v-for="dp in ohlc" :x="candles_x(new Date(dp[0]))-1" :y="candles_y(dp[2])">{{dp[2]}}</text> -->
@@ -188,12 +189,22 @@
                 class="small">{{new Date(t).getHours().toString().padStart(2,"0")}}:{{new Date(t).getMinutes().toString().padStart(2,"0")}}</text>
             <text style="dominant-baseline: central" v-for="t in candles_y.ticks()" :x="width+30" :y=candles_y(t)
                 class="small">{{t}}</text>
+
             <!--
             with a large viewBox the circle looks small
             as it is using user units for the r attribute:
             4 resolved against 100 as set in the viewBox
             -->
             <!-- <circle cx="50%" cy="50%" r="4" fill="white"/> -->
+        </svg>
+        <svg :width="width + margin.left + margin.right" :height="100"
+            :viewBox="`0 0 ${width + margin.left + margin.right} ${100}`"
+            xmlns="http://www.w3.org/2000/svg">
+            <rect style="fill: none; stroke:whitesmoke; stroke-width: 2; stroke-dasharray: 2"
+            v-for="t in vols_y.ticks()" :x="0" :y="vols_y(t)" width=100% height="1" />
+            <path style="fill:none; stroke: blue" :d='indicator_line_24hr(vol_24hr)'></path>
+            <text style="font-size: .38rem;dominant-baseline: central" v-for="t in vols_y.ticks()" :x="width+30" :y=vols_y(t)
+                class="small">{{t}}</text>
         </svg>
         <div id="my_dataviz"></div>
     </div>
@@ -287,12 +298,17 @@
             }
         },
         data: {
+            vol_24hr: [],
+            indicator_line_24hr: d3.line()
+                .curve(d3.curveCardinal)
+                .x(d => app.candles_x(new Date(d[0])))
+                .y(d => app.vols_y(d[1])),
             ohlc: [],
             btc,
             console,
             CoinGecko_prices: {},
             coins,
-            margin: { top: 10, right: 30, bottom: 30, left: 50 },
+            margin: { top: 50, right: 30, bottom: 0, left: 50 },
             w: 1000,
             h: 380,
             my: {
@@ -317,7 +333,10 @@
             });
 */
             fetch("https://api.coingecko.com/api/v3/coins/bitcoin/ohlc?vs_currency=usd&days=1").then(e => e.json()).then(e => console.log(this.ohlc = e))
-
+            let now = Date.now()
+            console.log(Math.round(now/1000))
+            console.log(Math.round((now/1000)-24*60*60))
+            fetch(`https://api.coingecko.com/api/v3/coins/bitcoin/market_chart/range?vs_currency=usd&from=${Math.round((now/1000)-24*60*60)}&to=${Math.round(now/1000)}`).then(e => e.json()).then(e => this.vol_24hr = e.total_volumes.filter(e=>e[0]<=this.candles_x.domain()[1]&&e[0]>=this.candles_x.domain()[0]));
             fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${this.my_tokens_as_html_params}&vs_currencies=usd&include_last_updated_at=true&include_24hr_change=true`).then(e => e.json()).then(e => this.CoinGecko_prices = e);
             _heartbeat();
 
@@ -330,9 +349,9 @@
             btc_ath_hist_date = baz.col('date').map(e => new Date(e))
             btc_ath_hist_date_extent = d3.extent(btc_ath_hist_date)
 
-            margin = { top: 10, right: 30, bottom: 30, left: 50 },
-                width = 460 - margin.left - margin.right,
-                height = 400 - margin.top - margin.bottom;
+            // margin = { top: 10, right: 30, bottom: 30, left: 50 },
+            //     width = 460 - margin.left - margin.right,
+            //     height = 400 - margin.top - margin.bottom;
             var svg = d3.select("#my_dataviz")
                 .append("svg")
                 .attr("width", width + margin.left + margin.right)
@@ -380,12 +399,17 @@
             candles_x() {
                 return d3.scaleLinear()
                     .domain(d3.extent(this.ohlc.map(e => new Date(e[0]))))
-                    .range([0, this.width]).nice();
+                    .range([this.margin.left, this.width - this.margin.right]).nice();
             },
             candles_y() {
                 return d3.scaleLinear()
                     .domain(d3.extent(this.ohlc.map(e => e.slice(1)).flat()))
-                    .range([this.height, 0]).nice();
+                    .range([this.height - this.margin.bottom, this.margin.top]).nice();
+            },
+            vols_y() {
+                return d3.scaleLinear()
+                    .domain(d3.extent(this.vol_24hr.map(e=>e[1])))
+                    .range([80, 10]).nice();
             },
             coins_df() {
                 return new DataFrame(this.coins, ['name', 'symbol', 'id_coinmarketcap', 'name_coinmarketcap', 'id_coingecko', 'name_coingecko'])
