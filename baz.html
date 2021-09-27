@@ -164,6 +164,14 @@
 
             </template>
         </table>
+        <div v-if="c_data"
+            :style="`background: white; display: inline-block; width: 300; height; 180; position: absolute; top: ${mouse.top}px; left: ${mouse.left}px`">
+            Date: {{new Date(c_data[0])}}<br>
+            Open: {{c_data[1]}}<br>
+            High: {{c_data[2]}}<br>
+            Low: {{c_data[3]}}<br>
+            Close: {{c_data[4]}}
+        </div>
         <svg :width="width + margin.left + margin.right" :height="height + margin.top + margin.bottom"
             :viewBox="`0 0 ${width + margin.left + margin.right} ${height + margin.top + margin.bottom}`"
             xmlns="http://www.w3.org/2000/svg">
@@ -176,17 +184,26 @@
                 v-for="t in candles_y.ticks()" :x="0" :y="candles_y(t)" width=100% height="1" />
             <!-- <rect style="fill:honeydew" v-for="t in candles_y.ticks()" :x="0"
                 :y="candles_y(t)-1" :width="width" height="2" /> -->
-            <rect v-for="dp in ohlc" :x="candles_x(new Date(dp[0]))-1" :y="candles_y(dp[2])" width="2"
+            <rect v-for="dp in ohlc" :x="candles_x(new Date(dp[0]))-.5" :y="candles_y(dp[2])" width="1"
                 :height="Math.abs(candles_y(dp[2])-candles_y(dp[3]))" />
             <!-- <text v-for="dp in ohlc" :x="candles_x(new Date(dp[0]))-1" :y="candles_y(dp[2])">{{dp[2]}}</text> -->
             <!-- <text v-for="dp in ohlc" :x="candles_x(new Date(dp[0]))-1" :y="candles_y(dp[3])">{{dp[3]}}</text> -->
             <!-- <rect v-for="dp in btc.ohlc" :x="candles_x(new Date(dp[0]))-1" :y="candles_y(dp[2])" width="2"
                 :height="Math.abs(candles_y(dp[2])-candles_y(dp[3]))" /> -->
-            <rect v-for="dp in ohlc" :class="{bearCandle:candles_y(dp[1])-candles_y(dp[4])>0}"
-                :x="candles_x(new Date(dp[0]))-3" :y="candles_y(Math.max(dp[1],dp[4]))" width="6"
-                :height="Math.abs(candles_y(dp[1])-candles_y(dp[4]))" />
-            <text v-for="t in candles_x.ticks()" :x="candles_x(new Date(t))" y="20"
-                class="small">{{new Date(t).getHours().toString().padStart(2,"0")}}:{{new Date(t).getMinutes().toString().padStart(2,"0")}}</text>
+            <!-- <rect @mouseover="c_data = dp" @mouseout="c_data = null" v-for="dp in ohlc"
+                :class="{bearCandle:candles_y(dp[1])-candles_y(dp[4])<0}" :x="candles_x(new Date(dp[0]))-1.5"
+                :y="candles_y(Math.max(dp[1],dp[4]))" width="3" :height="Math.abs(candles_y(dp[1])-candles_y(dp[4]))" /> -->
+
+<g v-for="dp in ohlc" @mouseover="c_data = dp" @mouseout="c_data = null" >
+    <rect :x="candles_x(new Date(dp[0]))-.5" :y="candles_y(dp[2])" width="1" :height="Math.abs(candles_y(dp[2])-candles_y(dp[3]))" />
+    <rect :class="{bearCandle:candles_y(dp[1])-candles_y(dp[4])<0}" :x="candles_x(new Date(dp[0]))-1.5"
+    :y="candles_y(Math.max(dp[1],dp[4]))" width="3" :height="Math.abs(candles_y(dp[1])-candles_y(dp[4]))" />
+</g>
+
+
+            <text style="text-anchor: middle; font-size:.5em" v-for="t ,i in candles_x.ticks()"
+                :x="candles_x(new Date(t))" :y="20" class="small">{{new Date(t).toLocaleString('en-US', {month:'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric'})}}</text>
+            <!-- class="small">{{new Date(t).getHours().toString().padStart(2,"0")}}:{{new Date(t).getMinutes().toString().padStart(2,"0")}}</text> -->
             <text style="dominant-baseline: central" v-for="t in candles_y.ticks()" :x="width+30" :y=candles_y(t)
                 class="small">{{t}}</text>
 
@@ -198,13 +215,12 @@
             <!-- <circle cx="50%" cy="50%" r="4" fill="white"/> -->
         </svg>
         <svg :width="width + margin.left + margin.right" :height="100"
-            :viewBox="`0 0 ${width + margin.left + margin.right} ${100}`"
-            xmlns="http://www.w3.org/2000/svg">
+            :viewBox="`0 0 ${width + margin.left + margin.right} ${100}`" xmlns="http://www.w3.org/2000/svg">
             <rect style="fill: none; stroke:whitesmoke; stroke-width: 2; stroke-dasharray: 2"
-            v-for="t in vols_y.ticks()" :x="0" :y="vols_y(t)" width=100% height="1" />
+                v-for="t in vols_y.ticks()" :x="0" :y="vols_y(t)" width=100% height="1" />
             <path style="fill:none; stroke: blue" :d='indicator_line_24hr(vol_24hr)'></path>
-            <text style="font-size: .38rem;dominant-baseline: central" v-for="t in vols_y.ticks()" :x="width+30" :y=vols_y(t)
-                class="small">{{t}}</text>
+            <text style="font-size: .38rem;dominant-baseline: central" v-for="t in vols_y.ticks()" :x="width+30"
+                :y=vols_y(t) class="small">{{t}}</text>
         </svg>
         <div id="my_dataviz"></div>
     </div>
@@ -212,6 +228,15 @@
 
 <script src="config.js"></script>
 <script>
+    function findLastIndex(array, predicate) {
+        let l = array.length;
+        while (l--) {
+            if (predicate(array[l]))
+                return l;
+        }
+        return -1;
+    }
+
     function σ(arr) {
         let n = arr.length, mean = arr.reduce((a, b) => a + b) / n, x̃;
         return { σ: Math.sqrt(arr.map(e => Math.pow(e - mean, 2)).reduce((a, b) => a + b) / n), mean, x: median(arr) }
@@ -290,6 +315,22 @@
         }, 15000)
     };
 
+    function find_double_bottom(arr) {
+    return arr.reduce((a,c,i)=>{
+    let b = findLastIndex(arr.slice(0,i), f=>c[4]/f[4]<=.95);
+    if(~b){
+        let d = arr.slice(i+1).findIndex(f=>(f[4]>arr[b][4])||f[4]<c[4])
+        if(~d){
+//             look for second bottom
+
+            let e = arr.slice(i+1, d).find(f=>f[4]/c[4]>=.96);
+            if (e)a.push([b,i,arr.indexOf(e)])
+        }
+    }
+    return a;
+}, [])
+}
+
     const app = new Vue({
         el: "#app",
         methods: {
@@ -298,6 +339,7 @@
             }
         },
         data: {
+            c_data: null,
             vol_24hr: [],
             indicator_line_24hr: d3.line()
                 .curve(d3.curveCardinal)
@@ -308,7 +350,8 @@
             console,
             CoinGecko_prices: {},
             coins,
-            margin: { top: 50, right: 30, bottom: 0, left: 50 },
+            margin: { top: 20, right: 30, bottom: 0, left: 50 },
+            mouse: { top: 50, left: 50 },
             w: 1000,
             h: 380,
             my: {
@@ -322,6 +365,10 @@
             transaction_df: {}
         },
         mounted() {
+            window.addEventListener('mousemove', function (e) {
+                app.mouse.top = e.pageY + 12;
+                app.mouse.left = e.pageX + 20;
+            });
             /*
             const socket = io("http://localhost:8080");
             // console.log(socket)
@@ -332,11 +379,12 @@
                 console.log(args)
             });
 */
-            fetch("https://api.coingecko.com/api/v3/coins/bitcoin/ohlc?vs_currency=usd&days=1").then(e => e.json()).then(e => console.log(this.ohlc = e))
+let days_of_data = 30;
+            fetch(`https://api.coingecko.com/api/v3/coins/bitcoin/ohlc?vs_currency=usd&days=${days_of_data}`).then(e => e.json()).then(e => console.log(this.ohlc = e))
             let now = Date.now()
-            console.log(Math.round(now/1000))
-            console.log(Math.round((now/1000)-24*60*60))
-            fetch(`https://api.coingecko.com/api/v3/coins/bitcoin/market_chart/range?vs_currency=usd&from=${Math.round((now/1000)-24*60*60)}&to=${Math.round(now/1000)}`).then(e => e.json()).then(e => this.vol_24hr = e.total_volumes.filter(e=>e[0]<=this.candles_x.domain()[1]&&e[0]>=this.candles_x.domain()[0]));
+            console.log(Math.round(now / 1000))
+            console.log(Math.round((now / 1000) - 24 * 60 * 60))
+            fetch(`https://api.coingecko.com/api/v3/coins/bitcoin/market_chart/range?vs_currency=usd&from=${Math.round((now / 1000) - 24 * 60 * 60 * days_of_data)}&to=${Math.round(now / 1000)}`).then(e => e.json()).then(e => this.vol_24hr = e.total_volumes.filter(e => e[0] <= this.candles_x.domain()[1] && e[0] >= this.candles_x.domain()[0]));
             fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${this.my_tokens_as_html_params}&vs_currencies=usd&include_last_updated_at=true&include_24hr_change=true`).then(e => e.json()).then(e => this.CoinGecko_prices = e);
             _heartbeat();
 
@@ -408,7 +456,7 @@
             },
             vols_y() {
                 return d3.scaleLinear()
-                    .domain(d3.extent(this.vol_24hr.map(e=>e[1])))
+                    .domain(d3.extent(this.vol_24hr.map(e => e[1])))
                     .range([80, 10]).nice();
             },
             coins_df() {
