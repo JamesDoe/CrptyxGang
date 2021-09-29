@@ -18,9 +18,15 @@
 
     <style>
         .bearCandle {
-            fill: white;
-            stroke-width: 1;
-            stroke: black;
+            fill: red;
+            /* stroke-width: 1; */
+            /* stroke: black; */
+        }
+
+        .bullCandle {
+            fill: green;
+            /* stroke-width: 1; */
+            /* stroke: black; */
         }
 
         body {
@@ -118,6 +124,7 @@
                     @click="console.log(`adding ${my.ticker_to_append} to your tokens...`);my.watchlist.push(my.ticker_to_append); fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${my_tokens_as_html_params}&vs_currencies=usd&include_last_updated_at=true&include_24hr_change=true`).then(e => e.json()).then(e => CoinGecko_prices = e); console.log(`${my.ticker_to_append} added to your tokens...`); my.ticker_to_append='';">
                     add to watchlist </button>
                 <button disabled> add transaction </button>
+                <button @click="indicators.push(JSON.parse(JSON.stringify(indicator)))"> add indicator </button>
                 <label class="custom-file-upload">
                     <input id="import_transaction_button" type="file"
                         accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" />
@@ -194,18 +201,26 @@
                 :class="{bearCandle:candles_y(dp[1])-candles_y(dp[4])<0}" :x="candles_x(new Date(dp[0]))-1.5"
                 :y="candles_y(Math.max(dp[1],dp[4]))" width="3" :height="Math.abs(candles_y(dp[1])-candles_y(dp[4]))" /> -->
 
-<g v-for="dp in ohlc" @mouseover="c_data = dp" @mouseout="c_data = null" >
-    <rect :x="candles_x(new Date(dp[0]))-.5" :y="candles_y(dp[2])" width="1" :height="Math.abs(candles_y(dp[2])-candles_y(dp[3]))" />
-    <rect :class="{bearCandle:candles_y(dp[1])-candles_y(dp[4])<0}" :x="candles_x(new Date(dp[0]))-1.5"
-    :y="candles_y(Math.max(dp[1],dp[4]))" width="3" :height="Math.abs(candles_y(dp[1])-candles_y(dp[4]))" />
-</g>
+            <g :class="candles_y(dp[1])-candles_y(dp[4])<0?'bearCandle':'bullCandle'" v-for="dp in ohlc"
+                @mouseover="c_data = dp" @mouseout="c_data = null">
+                <rect :x="candles_x(new Date(dp[0]))-.5" :y="candles_y(dp[2])" width="1"
+                    :height="Math.abs(candles_y(dp[2])-candles_y(dp[3]))" />
+                <rect :x="candles_x(new Date(dp[0]))-1.5" :y="candles_y(Math.max(dp[1],dp[4]))" width="3"
+                    :height="Math.abs(candles_y(dp[1])-candles_y(dp[4]))" />
+            </g>
 
 
             <text style="text-anchor: middle; font-size:.5em" v-for="t ,i in candles_x.ticks()"
-                :x="candles_x(new Date(t))" :y="20" class="small">{{new Date(t).toLocaleString('en-US', {month:'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric'})}}</text>
+                :x="candles_x(new Date(t))" :y="20"
+                class="small">{{new Date(t).toLocaleString('en-US', {month:'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric'})}}</text>
             <!-- class="small">{{new Date(t).getHours().toString().padStart(2,"0")}}:{{new Date(t).getMinutes().toString().padStart(2,"0")}}</text> -->
             <text style="dominant-baseline: central" v-for="t in candles_y.ticks()" :x="width+30" :y=candles_y(t)
                 class="small">{{t}}</text>
+
+
+            <path v-for="i,idx in indicators" :style="`fill:none; stroke: ${colors[idx]}`"
+                :d='indicator_line(d3.zip(ohlc.slice(i[0]-1).map(e=>e[0]),$root[`calculate_${i[1]}`](ohlc.map(e=>e[4]),i[0])))'>
+            </path>
 
             <!--
             with a large viewBox the circle looks small
@@ -218,16 +233,48 @@
             :viewBox="`0 0 ${width + margin.left + margin.right} ${100}`" xmlns="http://www.w3.org/2000/svg">
             <rect style="fill: none; stroke:whitesmoke; stroke-width: 2; stroke-dasharray: 2"
                 v-for="t in vols_y.ticks()" :x="0" :y="vols_y(t)" width=100% height="1" />
-            <path style="fill:none; stroke: blue" :d='indicator_line_24hr(vol_24hr)'></path>
-            <text style="font-size: .38rem;dominant-baseline: central" v-for="t in vols_y.ticks()" :x="width+30"
+            <!-- <rect style="fill: none; stroke:whitesmoke; stroke-width: 2; stroke-dasharray: 2"
+                v-for="t in vols_y.ticks()" :x="0" :y="vols_y(t)" width=100% height="1" /> -->
+
+            <rect style="fill: lightgray;" :x="candles_x(v[0])" :y="vols_y(v[1])" width=".15em"
+                :height="100-vols_y(v[1])" v-for="v in vol_24hr" />
+
+            <!-- <path style="fill:none; stroke: blue" :d='indicator_line_24hr(vol_24hr)'></path> -->
+            <text style="font-size: .38rem; dominant-baseline: central" v-for="t in vols_y.ticks()" :x="width+30"
                 :y=vols_y(t) class="small">{{t}}</text>
         </svg>
+        <template v-if="ohlc"
+            v-for="scope in [{h: 50, p:10, data: calculate_atr(ohlc.map(e=>({date:e[0], open: e[1], high: e[2], low: e[3], close: e[4]})))}]">
+            <svg :viewBox="`0 0 ${width + margin.left + margin.right} ${scope.h}`" xmlns="http://www.w3.org/2000/svg"
+                :width="width + margin.left + margin.right" :height="scope.h"
+                v-for="atr in [{ y: d3.scaleLinear().domain(d3.extent(scope.data.map(e=>e[1]))).range([scope.h-scope.p, scope.p]).nice() }]">
+                <path :style="`fill:none; stroke: #000`" :d='d3.line()
+                .curve(d3.curveCardinal)
+                .x(d => candles_x(new Date(d[0])))
+                .y(d => atr.y(d[1]))(scope.data)'>
+                </path>
+            </svg>
+        </template>
+        <span style="display:flex" v-for="i,idx in indicators">
+            <span :style="`color: ${colors[idx]};`">•</span> <select v-model="i[0]">
+                <option v-for="p in [20,50,90].filter(e=>e<=ohlc.length)">{{p}}</option>
+            </select>-unit <select v-model="i[1]">
+                <option v-for="p in ['sma','ema']">{{p}}</option>
+            </select>
+        </span>
+        <div>
+            {{calculate_atr(ohlc.map(e=>({date:e[0], open: e[1], high: e[2], low: e[3], close: e[4]})))}}
+        </div>
+        <div>
+        </div>
         <div id="my_dataviz"></div>
     </div>
 </body>
 
 <script src="config.js"></script>
 <script>
+    const colors = ['orange', 'blue', 'indigo', 'violet', 'cyan', 'magenta', 'yellow', 'black']
+
     function findLastIndex(array, predicate) {
         let l = array.length;
         while (l--) {
@@ -316,40 +363,93 @@
     };
 
     function find_double_bottom(arr) {
-    return arr.reduce((a,c,i)=>{
-    let b = findLastIndex(arr.slice(0,i), f=>c[4]/f[4]<=.95);
-    if(~b){
-        let d = arr.slice(i+1).findIndex(f=>(f[4]>arr[b][4])||f[4]<c[4])
-        if(~d){
-//             look for second bottom
+        return arr.reduce((a, c, i) => {
+            let b = findLastIndex(arr.slice(0, i), f => c[4] / f[4] <= .95);
+            if (~b) {
+                let d = arr.slice(i + 1).findIndex(f => (f[4] > arr[b][4]) || f[4] < c[4])
+                if (~d) {
+                    //             look for second bottom
 
-            let e = arr.slice(i+1, d).find(f=>f[4]/c[4]>=.96);
-            if (e)a.push([b,i,arr.indexOf(e)])
-        }
+                    let e = arr.slice(i + 1, d).find(f => f[4] / c[4] >= .96);
+                    if (e) a.push([b, i, arr.indexOf(e)])
+                }
+            }
+            return a;
+        }, [])
     }
-    return a;
-}, [])
-}
 
+    function calculate_sma(data, windows_size = 20) {
+        if (!data || !data.length > windows_size) return []
+        return data.slice(windows_size - 1).map((e, i) => avg([data[i], ...data.slice(i + 1, windows_size + i)]))
+        // return data.slice(windows_size).map((e, i) => avg(data.slice(i, windows_size + i)))
+    }
+    function calculate_ema(data, windows_size) {
+        return data.slice(windows_size - 1).map((e, i) => _ema([data[i], ...data.slice(i + 1, windows_size + i)], windows_size))
+        // return data.slice(windows_size).map((e, i) => avg(data.slice(i, windows_size + i)))
+    }
+    function _ema(data, window_size, s_factor = 2) {
+        data = JSON.parse(JSON.stringify(data));
+        const k = s_factor / (window_size + 1);
+        // console.log(k)
+        let emaData = []
+        emaData[0] = data[0]
+        for (let i = 1; i < data.length; i++) {
+            let newPoint = (data[i] * k) + (emaData[i - 1] * (1 - k))
+            emaData.push(newPoint)
+        }
+        let currentEma = [...emaData].pop()
+        console.log(currentEma)
+        return +currentEma.toFixed(2)
+    }
+    const avg = (arr) => arr.reduce((a, b) => a + b, 0) / arr.length
     const app = new Vue({
         el: "#app",
         methods: {
             fetch(url) {
                 return fetch(url);
+            },
+            calculate_true_range(arr) {
+                let _arr = [{ date: arr[0].date, close: arr[0].close, range: Math.abs(arr[0].high - arr[0].low) }];
+                arr.slice(1).forEach((e, i) => {
+                    _arr.push({ date: e.date, close: e.close, range: Math.max(e.high - e.low, Math.abs(e.low - _arr[i].close), Math.abs(e.high - _arr[i].close)) })
+                    //     _arr.push(Math.max(e.high - e.low, Math.abs(e.high - _arr[i].close), Math.abs(e.low - _arr[i].close)))
+                })
+                return _arr;
+            },
+            calculate_atr(arr, p = 14) {
+                if (arr.length < (p + 1)) return [];
+                let dates = arr.slice(p - 1).map(e => e.date);
+                console.log(dates)
+                arr = this.calculate_true_range(JSON.parse(JSON.stringify(arr)));
+                let _arr = [avg(arr.splice(0, p).map(e => e.range))]
+                arr.forEach((e, i) => _arr.push((_arr[i] * (p - 1) + e.range) / p))
+                return d3.zip(dates, _arr);
             }
         },
         data: {
+            d3,
+            avg,
             c_data: null,
             vol_24hr: [],
+            indicator_line: d3.line()
+                .curve(d3.curveCardinal)
+                .x(d => app.candles_x(new Date(d[0])))
+                .y(d => app.candles_y(d[1])),
             indicator_line_24hr: d3.line()
                 .curve(d3.curveCardinal)
                 .x(d => app.candles_x(new Date(d[0])))
                 .y(d => app.vols_y(d[1])),
             ohlc: [],
             btc,
+            _ema,
+            calculate_ema,
+            calculate_sma,
             console,
             CoinGecko_prices: {},
             coins,
+            colors,
+            indicator: [20, 'sma'],
+            indicators: [],
             margin: { top: 20, right: 30, bottom: 0, left: 50 },
             mouse: { top: 50, left: 50 },
             w: 1000,
@@ -379,7 +479,7 @@
                 console.log(args)
             });
 */
-let days_of_data = 30;
+            let days_of_data = 1;
             fetch(`https://api.coingecko.com/api/v3/coins/bitcoin/ohlc?vs_currency=usd&days=${days_of_data}`).then(e => e.json()).then(e => console.log(this.ohlc = e))
             let now = Date.now()
             console.log(Math.round(now / 1000))
@@ -488,7 +588,12 @@ let days_of_data = 30;
                 return this.my.watchlist.map(e => e.toLowerCase())
             },
             width() { return this.w - this.margin.left - this.margin.right },
-            height() { return this.h - this.margin.top - this.margin.bottom }
+            height() { return this.h - this.margin.top - this.margin.bottom },
+            true_range() {
+                let range = this.ohlc.map(e => [e[0], Math.max(e[2] - e[3], Math.abs(e[2] - e[4]), Math.abs(e[3] - e[4]))])
+                return d3.zip(range.map(e => e[0]).slice(14 - 1), calculate_sma(range.map(e => e[1]), 14))
+                // return d3.zip(range.slice(14-1),calculate_sma(range, 14))
+            }
         }
     })
 
