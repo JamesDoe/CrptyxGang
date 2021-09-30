@@ -31,10 +31,21 @@
 
         body {
             font-family: 'Roboto', sans-serif;
+            background: #e2e1e0;
         }
 
-        .card {}
-
+        .card {
+            background: #fff;
+            border-radius: 2px;
+            /* display: inline-block; */
+            /* height: 300px; */
+            /* margin: 1rem; */
+            position: relative;
+            /* width: 300px; */
+        }
+        .card:hover {
+  box-shadow: 0 14px 28px rgba(0,0,0,0.25), 0 10px 10px rgba(0,0,0,0.22);
+}
         .y-labels {
             font-size: .62em
         }
@@ -94,6 +105,17 @@
 <body>
     <div id="app">
         <div>
+            <div class="card" v-for="coin in my.watchlist" style="display:flex; align-items: center;">
+                <img style="padding: .38em;" class="coin-logo" width="32" height="32"
+                    :src="`https://s2.coinmarketcap.com/static/img/coins/64x64/${coins_df.row(coin,'symbol')[0].id_coinmarketcap}.png`">
+                <div>
+                    <div>
+                        <span style="font-size:.62em; color: gray; margin-left: .5em">{{coins_df.row(coin,'symbol')[0].name_coinmarketcap}}</span>
+                    </div>
+                    <div><span style="font-size:1.62em;font-weight:bold">{{coin}}</span></div>
+                </div>
+            </div>
+
             <div style="display: flex;">
 
                 <div v-for="coin in my.watchlist" style="display:flex; align-items: center;">
@@ -103,6 +125,22 @@
                     24hr
                     change:{{CoinGecko_prices[coins_df.row(coin,'symbol')[0].id_coingecko].usd_24h_change>0?'+':''}}{{Math.round(CoinGecko_prices[coins_df.row(coin,'symbol')[0].id_coingecko].usd_24h_change, 2)}}%
                     <!-- {{coin}} {{CoinGecko_prices[coin.toLowerCase()].usd}} -->
+
+                </div>
+
+                <div style="padding: .62em;">
+                    <div v-for="coin in my.watchlist" style="padding: .62em; display:flex; align-items: center;"
+                        class="card">
+                        <div>
+                            <img class="coin-logo" width="24" height="24"
+                                :src="`https://s2.coinmarketcap.com/static/img/coins/64x64/${coins_df.row(coin,'symbol')[0].id_coinmarketcap}.png`">
+                        </div>
+                        <div>
+                            <span
+                                style="font-size:.62em; color: gray">{{coins_df.row(coin,'symbol')[0].name_coinmarketcap}}</span><br>
+                            <span style="font-size:1.62em;font-weight:bold">{{coin}} </span>
+                        </div>
+                    </div>
                 </div>
             </div>
             <div v-for="t in [my.transaction_to_append]">
@@ -187,8 +225,11 @@
             of the square looks unchanged regardless of the viewBox
             -->
             <!-- <rect x="0" y="0" width="100%" height="100%"/> -->
-            <rect style="fill: none; stroke:whitesmoke; stroke-width: 2; stroke-dasharray: 2"
-                v-for="t in candles_y.ticks()" :x="0" :y="candles_y(t)" width=100% height="1" />
+            <line stroke="whitesmoke" v-for="t ,i in candles_x.ticks()" :x1="candles_x(new Date(t))"
+                :x2="candles_x(new Date(t))" y1="50" :y2="height" />
+            <line stroke="whitesmoke" v-for="t in candles_y.ticks()" :x1="0" :x2="width" :y1="candles_y(t)" :y2="candles_y(t)" />
+            <!-- <rect style="fill: none; stroke:whitesmoke; stroke-width: 2; stroke-dasharray: 2"
+                v-for="t in candles_y.ticks()" :x="0" :y="candles_y(t)" width=100% height="1" /> -->
             <!-- <rect style="fill:honeydew" v-for="t in candles_y.ticks()" :x="0"
                 :y="candles_y(t)-1" :width="width" height="2" /> -->
             <rect v-for="dp in ohlc" :x="candles_x(new Date(dp[0]))-.5" :y="candles_y(dp[2])" width="1"
@@ -257,7 +298,7 @@
         </template>
         <span style="display:flex" v-for="i,idx in indicators">
             <span :style="`color: ${colors[idx]};`">•</span> <select v-model="i[0]">
-                <option v-for="p in [20,50,90].filter(e=>e<=ohlc.length)">{{p}}</option>
+                <option v-for="p in [7,14,20,50,90].filter(e=>e<=ohlc.length)">{{p}}</option>
             </select>-unit <select v-model="i[1]">
                 <option v-for="p in ['sma','ema']">{{p}}</option>
             </select>
@@ -355,6 +396,9 @@
         _paused = false;
     }
     function _heartbeat() {
+        console.log('thump')
+        console.log(this.my_tokens_as_html_params)
+
         return setTimeout(async () => {
             await _thump();
             while (_paused) await wait(1000);
@@ -398,7 +442,6 @@
             emaData.push(newPoint)
         }
         let currentEma = [...emaData].pop()
-        console.log(currentEma)
         return +currentEma.toFixed(2)
     }
     const avg = (arr) => arr.reduce((a, b) => a + b, 0) / arr.length
@@ -419,7 +462,6 @@
             calculate_atr(arr, p = 14) {
                 if (arr.length < (p + 1)) return [];
                 let dates = arr.slice(p - 1).map(e => e.date);
-                console.log(dates)
                 arr = this.calculate_true_range(JSON.parse(JSON.stringify(arr)));
                 let _arr = [avg(arr.splice(0, p).map(e => e.range))]
                 arr.forEach((e, i) => _arr.push((_arr[i] * (p - 1) + e.range) / p))
@@ -450,7 +492,7 @@
             colors,
             indicator: [20, 'sma'],
             indicators: [],
-            margin: { top: 20, right: 30, bottom: 0, left: 50 },
+            margin: { top: 50, right: 30, bottom: 0, left: 50 },
             mouse: { top: 50, left: 50 },
             w: 1000,
             h: 380,
@@ -482,10 +524,19 @@
             let days_of_data = 1;
             fetch(`https://api.coingecko.com/api/v3/coins/bitcoin/ohlc?vs_currency=usd&days=${days_of_data}`).then(e => e.json()).then(e => console.log(this.ohlc = e))
             let now = Date.now()
-            console.log(Math.round(now / 1000))
-            console.log(Math.round((now / 1000) - 24 * 60 * 60))
             fetch(`https://api.coingecko.com/api/v3/coins/bitcoin/market_chart/range?vs_currency=usd&from=${Math.round((now / 1000) - 24 * 60 * 60 * days_of_data)}&to=${Math.round(now / 1000)}`).then(e => e.json()).then(e => this.vol_24hr = e.total_volumes.filter(e => e[0] <= this.candles_x.domain()[1] && e[0] >= this.candles_x.domain()[0]));
-            fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${this.my_tokens_as_html_params}&vs_currencies=usd&include_last_updated_at=true&include_24hr_change=true`).then(e => e.json()).then(e => this.CoinGecko_prices = e);
+            console.log(this.my_tokens_as_html_params)
+            fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${this.my_tokens_as_html_params}&vs_currencies=usd&include_last_updated_at=true&include_24hr_change=true`).then(async e => {
+                console.log(e)
+                let json = await e.json();
+                console.log(json)
+                return json
+            }).then(e => {
+                console.log(e)
+                this.CoinGecko_prices = e
+
+
+            });
             _heartbeat();
 
             bar = new DataFrame(btc.price, ['date', 'price']);
@@ -527,7 +578,6 @@
                 .curve(d3.curveStepAfter)
                 .x(d => x(d[0]))
                 .y(d => y(d[1]))
-            console.log(d3.zip(btc_price_hist_date, btc_price_hist_price))
             svg.append("path")
                 .attr("d", line(d3.zip(btc_price_hist_date, btc_price_hist_price)))
                 // .attr("d", line((portfolio_perf_snapshots.filter((e, i) => !i || portfolio_perf_snapshots[i - 1][1] !== e[1]))))
@@ -536,7 +586,6 @@
                 .attr("fill", "none")
                 .attr("shape-rendering", "crispEdges")
 
-            console.log('foo')
             $app.forceUpdate();
         },
         computed: {
@@ -636,19 +685,17 @@
     //     [3, 4]
     // ];
     function import_csv() {
-        console.log(this.files[0])
         var reader = new FileReader();
         reader.readAsText(this.files[0]);
         reader.onload = (event) => {
             app.my.imported_transactions = (app.transaction_df = new DataFrame(event.target.result.replace(/\"(\d{1,3}(?:,\d{3})+)\"/, (a, b) => parseFloat(b.replace(/,/g, ''))).split(/\r\n|\n/).map(r => r.split(',')))).row();
-            // console.log being used to rerun potfolio_stats
+            // console.log being used to rerun portfolio_stats
             console.log(app.portfolio_stats)
             fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${app.my_tokens_as_html_params}&vs_currencies=usd&include_last_updated_at=true&include_24hr_change=true`).then(e => e.json()).then(e => app.CoinGecko_prices = e);
         };
         reader.onerror = (event) => console.log(event.target.error.name);
     }
     document.getElementById("import_transaction_button").addEventListener("change", import_csv, false);
-    console.log(app.coins_df.row())
 </script>
 
 </html>
