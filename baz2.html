@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css?family=Teko|Roboto+Condensed|Roboto" rel="stylesheet">
+
+    <!-- <link href="https://fonts.googleapis.com/css2?display=swap&family=Roboto+Condensed|Roboto" rel="stylesheet"> -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://unpkg.com/vue"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.0.1/d3.min.js"
+        integrity="sha512-1e0JvdNhUkvFbAURPPlFKcX0mWu/b6GT9e0uve7BW4MFxJ15q4ZCd/Llz+B7/oh+qhw7/l6Q1ObPt6aAuR01+Q=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdn.socket.io/3.1.3/socket.io.min.js"
+        integrity="sha384-cPwlPLvBTa3sKAgddT6krw0cJat7egBga3DJepJyrLl4Q9/5WLra3rrnMcyTyOnh"
+        crossorigin="anonymous"></script>
+
+
+    <title>Document</title>
+    <style>
+
+        
+          .up::before {
+    font-family: "Font Awesome 5 Free"; 
+    font-weight: 600; 
+    content: "\f062"; color: greenyellow;
+    
+  }
+          .down::before {
+    font-family: "Font Awesome 5 Free"; font-weight: 900; content: "\f007"; color: red;
+  }
+        body {
+            background-color: #888;
+        }
+        /* .6_17 { 
+	overflow:hidden;
+} */
+        .e6_17 {
+            width: 180px;
+            height: 84.9056625366211px;
+            position: relative;
+            margin: .38em;
+        }
+
+        .e1_2 {
+            box-shadow: 0px 0.4245283007621765px 1.698113203048706px rgba(0, 0, 0, 0.25);
+            background-color: rgba(255, 255, 255, 1);
+            width: 180px;
+            height: 84.9056625366211px;
+            /* position:absolute; */
+            left: 0px;
+            top: 0px;
+            border-radius: 3.8207547664642334px;
+        }
+
+        .ticker_name {
+            color: rgba(102.00000151991844, 102.00000151991844, 102.00000151991844, 1);
+            width: 78.96226501464844px;
+            height: 10.188679695129395px;
+            position: absolute;
+            left: 9px;
+            top: 67.5px;
+            font-family: Roboto;
+            text-align: left;
+            font-size: 10.188679695129395px;
+            letter-spacing: 0;
+        }
+
+        .e6_18 {
+            color: rgba(187.00000405311584, 187.00000405311584, 187.00000405311584, 1);
+            width: 78.96226501464844px;
+            
+            height: 10.188679695129395px;
+            position: absolute;
+            right: 9px;
+            top: 67.5px;
+            font-family: Roboto;
+            text-align: right;
+            font-size: 10.188679695129395px;
+            letter-spacing: 0;
+        }
+
+        .ticker {
+            color: rgba(119.00000050663948, 119.00000050663948, 119.00000050663948, 1);
+            width: 158.34906005859375px;
+            height: 37.97288513183594px;
+            position: absolute;
+            font-weight: 600;
+            left: 6.79248046875px;
+            top: 25.59967041015625px;
+            font-family: 'Roboto Condensed';
+            text-align: left;
+            font-size: 40.75471878051758px;
+            letter-spacing: 0;
+        }
+
+        .e6_7 {
+            font-weight: 900;
+
+            color: rgba(0, 0, 0, 1);
+            width: 96.36792755126953px;
+            height: 23.03972816467285px;
+            position: absolute;
+            left: 6.79248046875px;
+            top: 6.8265380859375px;
+            font-family: 'Roboto Condensed';
+            text-align: left;
+            font-size: 20.37735939025879px;
+            letter-spacing: 0;
+        }
+
+        .percent_change {
+            color: rgba(0, 0, 0, 1);
+            width: 56.88679885864258px;
+            height: 20.47975730895996px;
+            position: absolute;
+            left: 103.160400390625px;
+            top: 10px;
+            font-family: 'Roboto Condensed';
+            text-align: left;
+            font-size: 15.283019065856934px;
+            letter-spacing: 0;
+            line-height: px;
+        }
+
+        .time_scale_option_9 {
+            color: rgba(0, 0, 0, 1);
+            width: 13.160377502441406px;
+            height: 5.546600818634033px;
+            position: absolute;
+            left: 108.2547607421875px;
+            font-family: 'Roboto Condensed';
+            text-align: center;
+            font-size: 5.94339656829834px;
+            letter-spacing: 0;
+        }
+
+        .time_scale_option_11 {
+            color: rgba(170.0000050663948, 170.0000050663948, 170.0000050663948, 1);
+            width: 13.160377502441406px;
+            height: 5.546600818634033px;
+            position: absolute;
+            left: 123.5377197265625px;
+            font-family: 'Roboto Condensed';
+            text-align: center;
+            font-size: 5.94339656829834px;
+            letter-spacing: 0;
+        }
+
+        .time_scale_option_12 {
+            color: rgba(170.0000050663948, 170.0000050663948, 170.0000050663948, 1);
+            width: 13.160377502441406px;
+            height: 5.546600818634033px;
+            position: absolute;
+            left: 138.8206787109375px;
+            font-family: 'Roboto Condensed';
+            text-align: center;
+            font-size: 5.94339656829834px;
+            letter-spacing: 0;
+        }
+
+        .time_scale_option_13 {
+            color: rgba(170.0000050663948, 170.0000050663948, 170.0000050663948, 1);
+            width: 13.160377502441406px;
+            height: 5.546600818634033px;
+            position: absolute;
+            left: 151.981201171875px;
+            font-family: 'Roboto Condensed';
+            text-align: center;
+            font-size: 5.94339656829834px;
+            letter-spacing: 0;
+        }
+
+        [class^='time_scale_option_'] {
+            font-size: 6px;
+            top: 4.2666015625px;
+        }
+/* https://www.w3schools.com/css/css_tooltip.asp */
+        .tooltip {
+  position: relative;
+  display: inline-block;
+  border-bottom: 1px dotted black; /* If you want dots under the hoverable text */
+}
+
+/* Tooltip text */
+.tooltip .tooltiptext {
+  visibility: hidden;
+  width: 120px;
+  background-color: black;
+  color: #fff;
+  text-align: center;
+  padding: 5px 0;
+  border-radius: 6px;
+ 
+  /* Position the tooltip text - see examples below! */
+  position: absolute;
+  z-index: 1;
+}
+
+/* Show the tooltip text when you mouse over the tooltip container */
+.tooltip:hover .tooltiptext {
+  visibility: visible;
+}
+    </style>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta2/css/all.min.css" integrity="sha512-YWzhKL2whUzgiheMoBFwW8CKV4qpHQAEuvilg9FAn5VJUDwKZZxkJNuGM4XkWuk94WCrrwslk8yWNGmY1EduTA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+</head>
+
+<body>
+    <i class="fas fa-arrow-up"></i>
+    <div id="app">
+        <div style="display: inline-flex; flex-direction: column;">
+            <div class=e6_17 v-for="c in cryptocompare_prices">
+                <div class="e1_2"></div><span class="ticker_name">{{coin_info_df.row(c[0],'symbol')[0].name_coinmarketcap}}</span><span class="e6_18">$125.00 +25%</span><span
+                    class="ticker">{{c[0]}}</span><span class="e6_7">${{c[1].USD.PRICE}}</span><span v-if="c[1].USD.CHANGEPCT24HOUR"
+                    :class="['percent_change', Math.round((c[1].USD.CHANGEPCT24HOUR + Number.EPSILON) * 100) / 100>0?'up':'down']">{{Math.abs(Math.round((c[1].USD.CHANGEPCT24HOUR + Number.EPSILON) * 100) / 100)}}%</span><span style="color: red"><span
+                        class="time_scale_option_9">24HR</span><span class="time_scale_option_11">DAY</span><span
+                        class="time_scale_option_12">HOUR</span><span class="time_scale_option_13">1YR</span></span>
+            </div>
+        </div>
+    </div>
+</body>
+
+<script src="config.js"></script>
+<script>
+    const colors = ['orange', 'blue', 'indigo', 'violet', 'cyan', 'magenta', 'yellow', 'black']
+    const app = new Vue({
+        computed: {
+            coin_info_df() {
+                return new DataFrame(this.coins, ['name', 'symbol', 'id_coinmarketcap', 'name_coinmarketcap', 'id_coingecko', 'name_coingecko'])
+            },
+        },
+        el: "#app",
+        data: {
+            coins,
+            colors,
+            cryptocompare_prices: []
+        },
+        mounted() {
+            _heartbeat(_thump1);
+            _heartbeat(_thump2, 5000);
+            // fetch('https://min-api.cryptocompare.com/data/pricemultifull?fsyms=ONE,BTC,VET,MATIC,ALGO&tsyms=USD').then(e => e.json()).then(e => this.cryptocompare_prices = Object.entries(e.RAW))
+        }
+    });
+
+    function DataFrame(data, col_headers, rows_labels) {
+        if (!col_headers) col_headers = data.splice(0, 1)[0];
+        let rows = {};
+        data = data.filter(r => r.some(rr => rr));
+        data.forEach((e, i) => {
+            e.forEach((ee, ii) => {
+                (rows[ee.toString()] || (rows[ee.toString()] = [])).push([i.toString(), ii.toString()])
+            })
+        })
+        let
+            cols = col_headers.reduce((a, c, i) => {
+                a[c] = data.map(e => e[i]);
+                return a;
+            }, {})
+        return {
+            col(col_name) {
+                if (!col_name) return col_headers
+                return cols[col_name]
+            },
+            row(row_value, col_name) {
+                if (!row_value) return data.map(r => Object.fromEntries(d3.zip(col_headers, r)));
+                if (col_name) return rows[row_value] && rows[row_value].map(r => data[r[0]]).filter(r => r[col_headers.indexOf(col_name)] == row_value).map(r => d3.zip(col_headers, r)).map(r => Object.fromEntries(r));
+                return rows[row_value] && Array.from(new Set(rows[row_value].map(r => r[0]))).map(r => data[r[0]]);
+            }
+        };
+    }
+
+    function get_cryptocompare_prices(array) {
+        // return console.log()
+        return fetch(`https://min-api.cryptocompare.com/data/pricemultifull?fsyms=${array.join(',')}&tsyms=USD`).then(e => e.json()).then(e => e)
+
+    }
+
+    async function _thump1() {
+        console.log('getting today\'s prices from cryptcompare...')
+        let foo = await get_cryptocompare_prices(['ONE', 'BTC', 'VET', 'MATIC', 'ALGO']).then(e => this.cryptocompare_prices = Object.entries(e.RAW));
+        app.cryptocompare_prices = foo;
+    }
+
+    async function _thump2() {
+        console.log('getting today\'s winners and losers...')
+        let foo = await get_cryptocompare_prices(['ONE', 'BTC', 'VET', 'MATIC', 'ALGO']).then(e => this.cryptocompare_prices = Object.entries(e.RAW));
+        app.cryptocompare_prices = foo;
+    }
+
+    async function _heartbeat(func, wait_time = 15000) {
+        if (!func) return 0;
+        await func();
+        return setTimeout(async () => {
+            // while (_paused) await wait(1000);
+            return _heartbeat(func, wait_time);
+        }, wait_time)
+    };
+</script>
+
+</html>
