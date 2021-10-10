@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css?family=Teko|Roboto+Condensed|Roboto" rel="stylesheet">
+
+    <!-- <link href="https://fonts.googleapis.com/css2?display=swap&family=Roboto+Condensed|Roboto" rel="stylesheet"> -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://unpkg.com/vue"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.0.1/d3.min.js"
+        integrity="sha512-1e0JvdNhUkvFbAURPPlFKcX0mWu/b6GT9e0uve7BW4MFxJ15q4ZCd/Llz+B7/oh+qhw7/l6Q1ObPt6aAuR01+Q=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdn.socket.io/3.1.3/socket.io.min.js"
+        integrity="sha384-cPwlPLvBTa3sKAgddT6krw0cJat7egBga3DJepJyrLl4Q9/5WLra3rrnMcyTyOnh"
+        crossorigin="anonymous"></script>
+
+
+    <title>Document</title>
+    <style>
+        text {
+            pointer-events: none;
+        }
+
+        body {
+            background-color: #999;
+        }
+
+        .material-field {
+            /* margin: 1em; */
+            position: relative;
+        }
+
+        /* .6_17 { 
+	overflow:hidden;
+} */
+        .button,
+        select,
+        input {
+            font-size: 18px;
+            padding: 13px 15px;
+            margin-bottom: 20px;
+            width: calc("100% - 30px");
+            display: block;
+            border-radius: 5px;
+            border: 2px solid gray;
+        }
+
+        input:focus {
+            outline: none;
+            border: 2px solid dodgerb;
+        }
+
+        input:focus.material-field-label {
+            color: dodgerb;
+            transform: scale(.75) translate(-13px, -30px);
+        }
+
+        .input_filled~.material-field-label,
+        select:focus~.material-field-label,
+        input:focus~.material-field-label {
+            color: dodgerb;
+            transform: scale(.75) translate(-13px, -30px);
+        }
+
+        label {
+            color: #ccc;
+            background: #fff;
+            font-size: 16px;
+            font-weight: normal;
+            position: absolute;
+            pointer-events: none;
+            top: 15px;
+            left: 8px;
+            padding: 0 8px;
+            transition: 150ms cubic-bezier(0.4, 0, 0.2, 1) all;
+            -moz-transition: 150ms cubic-bezier(0.4, 0, 0.2, 1) all;
+            -webkit-transition: 150ms cubic-bezier(0.4, 0, 0.2, 1) all;
+        }
+
+        .e6_17 {
+            width: 180px;
+            height: 84.9056625366211px;
+            position: relative;
+            margin: .38em;
+        }
+
+        .e1_2 {
+            box-shadow: 0px 0.4245283007621765px 1.698113203048706px rgba(0, 0, 0, 0.25);
+            /* background-color: rgba(255, 255, 255, 1); */
+            background-color: #fefefe;
+            width: 180px;
+            height: 84.9056625366211px;
+            /* position:absolute; */
+            left: 0px;
+            top: 0px;
+            border-radius: 3.8207547664642334px;
+        }
+
+        .e1_2_1 {
+            box-shadow: 0px 0.4245283007621765px 1.698113203048706px rgba(0, 0, 0, 0.25);
+            background-color: rgba(255, 255, 255, 1);
+            /* width: 180px; */
+            /* height: 84.9056625366211px; */
+            /* position:absolute; */
+            /* left: 0px; */
+            /* top: 0px; */
+            /* display: inline-flex; */
+            padding: 1em;
+            border-radius: 3.8207547664642334px;
+        }
+
+        .ticker_name {
+            color: black;
+            width: 78.96226501464844px;
+            height: 10.188679695129395px;
+            position: absolute;
+            left: 9px;
+            top: 67.5px;
+            font-family: Roboto;
+            text-align: left;
+            font-size: 10.188679695129395px;
+            letter-spacing: 0;
+        }
+
+        .e6_18 {
+            color: rgba(187.00000405311584, 187.00000405311584, 187.00000405311584, 1);
+            width: 78.96226501464844px;
+
+            height: 10.188679695129395px;
+            position: absolute;
+            right: 9px;
+            top: 67.5px;
+            font-family: Roboto;
+            text-align: right;
+            font-size: 10.188679695129395px;
+            letter-spacing: 0;
+        }
+
+        .ticker {
+            opacity: 0.62;
+            color: rgba(119.00000050663948, 119.00000050663948, 119.00000050663948, 1);
+            width: 158.34906005859375px;
+            height: 37.97288513183594px;
+            position: absolute;
+            font-weight: 600;
+            left: 6.79248046875px;
+            top: 25.59967041015625px;
+            font-family: 'Roboto Condensed';
+            text-align: left;
+            font-size: 40.75471878051758px;
+            letter-spacing: 0;
+        }
+
+        .e6_7 {
+            font-weight: 900;
+
+            color: rgba(0, 0, 0, 1);
+            width: 96.36792755126953px;
+            height: 23.03972816467285px;
+            position: absolute;
+            left: 6.79248046875px;
+            top: 6.8265380859375px;
+            font-family: 'Roboto Condensed';
+            text-align: left;
+            font-size: 20.37735939025879px;
+            letter-spacing: 0;
+
+        }
+
+        .percent_change {
+            color: #222;
+            width: 56.88679885864258px;
+            height: 20.47975730895996px;
+            position: absolute;
+            left: 103.160400390625px;
+            top: 11px;
+            font-family: 'Roboto Condensed';
+            text-align: left;
+            font-size: 15.283019065856934px;
+            letter-spacing: 0;
+            font-weight: 900;
+
+        }
+
+        .time_scale_option_9 {
+            color: #BBB;
+            /* width: 13.160377502441406px; */
+            height: 6px;
+            position: absolute;
+            left: 108px;
+            font-family: 'Roboto';
+            text-align: center;
+            /* font-size: 5.94339656829834px; */
+            letter-spacing: 0;
+            font-weight: 900;
+            display: flex;
+            align-items: center;
+            text-rendering: optimizeLegibility;
+        }
+
+        .time_scale_option_9>span {
+            padding: 0 1.5px;
+            opacity: .8;
+            user-select: none;
+        }
+
+        .time_scale_option_9>span:hover {
+            opacity: 1;
+            color: dodgerb;
+            font-weight: 900;
+            cursor: pointer;
+        }
+
+        [class^='time_scale_option_'] {
+
+
+            font-size: 8px;
+            top: 4px;
+            font-family: 'Roboto';
+        }
+
+        /* https://www.w3schools.com/css/css_tooltip.asp */
+        .tooltip {
+            position: relative;
+            display: inline-block;
+            border-bottom: 1px dotted black;
+            /* If you want dots under the hoverable text */
+        }
+
+        /* Tooltip text */
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 120px;
+            background-color: black;
+            color: #BBB;
+            text-align: center;
+            padding: 5px 0;
+            border-radius: 6px;
+
+            /* Position the tooltip text - see examples below! */
+            position: absolute;
+            z-index: 1;
+        }
+
+        /* Show the tooltip text when you mouse over the tooltip container */
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+        }
+
+        input {
+            border: 0;
+        }
+
+        input:focus {
+            outline: none;
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dexie/3.2.0-rc.2/dexie.min.js"
+        integrity="sha512-hJ1eR4h0vQbaojZAlCt5mDHE255IeqdRpK4IyBnXvAYDyBYfxMu2V2CA8PLAh8DdLB6x9ei9GRs+v2dUIGIjDQ=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dexie-observable@3.0.0-beta.11/dist/dexie-observable.min.js"></script>
+
+</head>
+
+<body>
+    <div id="app">
+        <div style="display: flex">
+            <div :style="`width:24px; height:24 px; background-color: rgb(${p.join(',')})`"
+                v-for="p in Array(256).fill(null).map((e, i) => clut8ColorComponents(i))">
+                &nbsp;foo
+            </div>
+        </div>
+        <div class="e1_2">
+            <div>my points: {{fantasy_points[1]}}</div>
+            <div>AI's points: {{state.points*(todaysprices.USDT&&todaysprices.USDT.USD.PRICE||1)}}</div>
+            <!-- <div>{{todaysprices.USDT&&todaysprices.USDT.USD.PRICE||'no'}}</div> -->
+            <!-- <div>AI's points: {{state.points*(todaysprices.USDT||1)}}</div> -->
+            <span v-if="Number(time.split(':')[0]) > 0 || Number(time.split(':')[1]) > 0">{{time}}</span>
+            <span v-else>You {{'win!'}}</span>
+
+        </div>
+        <div v-if="state.points_to_start">
+            <span><span>POINTS</span><span>Fantasy Crypto Points</span></span>
+            <span>{{state.points_to_start}}</span>
+            <span><button :disabled="swapping=='Fantasy Crypto Points'"
+                    @click="swapping=from.symbol='Fantasy Crypto Points'; from.symbol=0; from.amount = state.points_to_start">swap</button></span>
+            <!-- <span><button @click="swap(to)">swap</button></span> -->
+        </div>
+        <div v-if="state[symbol]&&symbol.slice(0,6)!='points'" v-for="amount, symbol in state">
+            <!-- <span><span>{{p.symbol}}</span><span>Fantasy Crypto Points</span></span>
+            <span></span>
+             -->
+            {{symbol}} My Ticker Name {{amount}}<span><button :disabled="swapping==symbol"
+                    @click="swapping=from.symbol=symbol; from.amount=state[symbol]">swap</button></span>
+        </div>
+        <!-- <div v-for="t in tickers">
+            <span><span>POINTS</span><span>Fantasy Crypto Points</span></span>
+            <span>{{state.points}}</span>
+            <span><button>swap</button></span>
+        </div> -->
+        <!-- {{plays}} -->
+        <div v-if="swapping">
+            Swap {{swapping}} for which crypto? <span v-if="to.symbol">
+                <div style="position: relative;">
+                    {{swapping}} to <input disabled v-model="to.symbol" type="text" />
+                    foobar
+                </div><span @click="to.symbol=''">X</span>
+            </span><input v-else v-model="searchterm" type="text" />
+            How much crypto? <input :max="Number(from.amount)" v-model="from.amount" type="number">
+
+            <span><button @click="swap(to);">Make The Swap</button></span>
+            <div style="position: absolute">
+                <div style="display:flex; align-items: center; background-color: #FFF; width: 200px;"
+                    v-for="c in filter_cryptos" @click="to.symbol = c.RAW.USD.FROMSYMBOL;">
+                    <div>
+                        <span style="font-size: 1.62em; display:inline-block">{{c.RAW.USD.FROMSYMBOL}}</span><br>
+                        <span style="font-size: 0.8em; display:inline-block">{{c.CoinInfo.FullName}}</span>
+                    </div>
+
+
+                    <img width="48" :src="'https://cryptocompare.com/'+c.CoinInfo.ImageUrl" alt="">
+                </div>
+            </div>
+
+            {{tickers}}
+            {{cryptocompare_prices}}
+        </div>
+    </div>
+</body>
+<script src="palette.js"></script>
+<script>
+    scale = d3.scaleLinear().domain([0, 1]).range([0, 255]).nice()
+
+    function clut8ColorComponents(n) {
+        if (n > 256) n = 255;
+        return [scale(palette[n].red), scale(palette[n].blue), scale(palette[n].green)]
+        // return pallet[n].map(e => [scale(e.red)])
+    }
+
+
+
+    function get_cryptocompare_prices(array) {
+        console.log(array)
+        // return fetch(`https://min-api.cryptocompare.com/data/pricemultifull?fsyms=${array.join(',')}&tsyms=USD}`).then(e => e.json()).then(e => e)
+        return fetch(`https://min-api.cryptocompare.com/data/pricemultifull?fsyms=${array.join(',')}&tsyms=USD`).then(e => e.json()).then(e => e)
+
+    }
+
+const EoG = .5;
+
+    async function _heartbeat(func, wait_time = 15000) {
+        if (!func) return 0;
+        await func();
+        return setTimeout(async () => {
+            // while (_paused) await wait(1000);
+            return _heartbeat(func, wait_time);
+        }, wait_time)
+    };
+    const colors = ['orange', 'b', 'indigo', 'violet', 'cyan', 'magenta', 'yellow', 'black']
+    const app = new Vue({
+        computed: {
+            state() {
+                let points, points_to_start = 999;
+                points = 1000;
+                let _state = { points, points_to_start }
+                this.plays.forEach(e => {
+                    // console.log(e.length);
+                    e.forEach(f => {
+                        Object.entries(f).forEach(g => {
+                            _state[g[0]] = (_state[g[0]] || (_state[g[0]] = 0)) + g[1]
+                        })
+                        // f.forEach(h => { console.log(h); let g = Object.keys(h)[0]; _state[g] = (_state[g] || (_state[g] = 0)) + Object.values(h[0]) })
+                    })
+                })
+                // console.log(Object.entries(_state))
+                return _state
+            },
+            filter_cryptos() {
+                // return Object.values(this.cryptos).filter(e => e.symbol.toLowerCase().includes(this.searchterm.toLowerCase())).slice(0, 20)
+                return Object.values(this.cryptos).filter(e => e.RAW && e.RAW.USD && e.RAW.USD.FROMSYMBOL.toLowerCase().includes(this.searchterm.toLowerCase())).slice(0, 20)
+            },
+            tickers() {
+                let foo = this.fantasy_points[0].map(e => e[0]);
+                return foo.concat(['USDT'])
+            },
+            fantasy_points() {
+                let foo = Object.entries(this.state).filter(e => e[0].slice(0, 6) != 'points');
+                return [foo, d3.sum(foo.map(e=>{
+                    console.log('prices',this.todaysprices[e[0]])
+                    if(!this.todaysprices[e[0]])return 0;
+                    console.log(e[1],this.todaysprices[e[0]].USD.PRICE);
+                    return e[1]*this.todaysprices[e[0]].USD.PRICE;
+                }))]
+            },
+            todaysprices() {
+                return Object.fromEntries(this.cryptocompare_prices)
+            },
+        },
+        el: "#app",
+        data: {
+            clut8ColorComponents,
+            cryptos: {},
+            cryptocompare_prices: [],
+            from: {
+                symbol: '',
+                amount: 5
+            },
+            to: {
+                symbol: '',
+                amount: 0
+            },
+            palette,
+            EoG,
+            plays: [],
+            points: 0,
+            searchterm: '',
+            start: new Date().getTime(),
+            end: new Date().getTime() + EoG * 60 * 1000,
+            swapping: null,
+            time: '',
+            gameover: 0
+
+        },
+        methods: {
+            swap(to, from) {
+                console.log('foo')
+                from = from || this.from;
+                let d = Math.round(new Date().now / 1000);
+                // console.log(to)
+                if (this.gameover) return alert('Game over.');
+                console.log(from.symbol);
+                console.log(!to , !to.symbol , !from.amount , from.amount > this.state[from.symbol],this.state.points_to_start);
+                if (!to || !to.symbol || !from.amount || from.amount > (this.state[from.symbol]||this.state.points_to_start)) return alert('Not enough funds.');
+                // fetch(`https://min-api.cryptocompare.com/data/v2/histominute?fsym=${from.symbol||'USD'}&tsym=${to.symbol}&limit=1`).then(e => e.json()).then(e => (console.log(e.Data)))
+                fetch(`https://min-api.cryptocompare.com/data/v2/histominute?fsym=${from.symbol || 'USD'}&tsym=${to.symbol}&limit=1`).then(e => e.json()).then(e => (console.log(e.Data.Data[0], from.amount, e.Data.Data[0].close * from.amount) || console.log(this.plays.push([{ [from.symbol || 'points_to_start']: -1 * from.amount, [to.symbol]: e.Data.Data[0].close * from.amount }]))))
+                this.swapping=0
+                // this.to.amount = 0;
+                // this.to.symbol = ''
+            },
+            run_clock() {
+                if (this.gameover) {
+                    return
+                    // if(this.gameclock)this.gameclock;
+                }
+                let now = new Date().getTime();
+                // console.log(Math.floor(Math.floor((this.end-now)/1000)%60))
+                this.time = `${Math.floor(Math.floor((this.end - now) / 1000) / 60)}:${Math.floor(Math.floor((this.end - now) / 1000) % 60)}`;
+                if (this.end - this.start <= 0) this.gameover = 1
+            },
+            async get_price_from_cryptocompare() {
+                // if (!this.c_price) return console.log('Price data not in sync.');
+                console.log(this.tickers)
+                if (this.tickers.length) {
+
+                    let foo = await get_cryptocompare_prices(this.tickers);//.then(e => );
+                    if (foo.Response === 'Error') return alert(foo.Message);
+                    console.log('getting prices from cryptcompare...');
+                    this.cryptocompare_prices = Object.entries(foo.RAW);
+                }
+            }
+        },
+        mounted() {
+            fetch('https://min-api.cryptocompare.com/data/top/totaltoptiervolfull?limit=100&tsym=USD').then(e => e.json()).then(e => (console.log(this.cryptos = e.Data)))
+            // fetch('https://min-api.cryptocompare.com/data/blockchain/list?api_key=583932a385edf4530535beb8494248479013f3b340bd5e52368f84b29e227492').then(e => e.json()).then(e => (console.log(this.cryptos = e.Data)))
+            console.log("Game started at: " + new Date(this.start))
+            _heartbeat(this.get_price_from_cryptocompare, 3000);
+            _heartbeat(this.run_clock, 1000);
+
+            // console.log("Penalty time starts at: " + new Date(this.start + this.EoG * 60 * 1000))
+
+        }
+    });
+
+</script>
+
+</html>
