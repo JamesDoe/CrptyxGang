@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://unpkg.com/vue"></script>
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+        }
+
+        .y-labels {
+            font-size: .62em
+        }
+    </style>
+    <title>Document</title>
+</head>
+
+<body>
+    <div id="app">
+        <div v-for="r,i in formatted_res">
+            <div style="text-align: center; padding-top: 1em; font-size:1.62em">
+                #{{i+1}} {{r[0]}}
+            </div>
+            <table>
+                <template v-for="foo in r.slice(1)">
+                    <tr>
+                        <td colspan="3">
+                            {{foo[0]}}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="font-size:.8em" v-for="bar in foo[1]">
+                            {{bar}}
+                        </td>
+                        <td>
+                            {{foo[2]}}
+                        </td>
+                    </tr>
+                </template>
+            </table>
+        </div>
+        <!-- <div v-for="r in res">
+            <div style="text-align: center; padding-top: 1em; font-size:1.62em">
+                {{r[0][1].map(e=>`${e[1]}(${e[0]}%)`).join("/")}}
+            </div>
+            <table>
+                <template v-for="foo in r">
+                    <tr>
+                        <td colspan="3">
+                            {{foo[0]}}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="font-size:.8em" v-for="bar in foo[1]">
+                            {{bar[3]}} {{bar[1]}}<br />@ ${{bar[2]}} = ${{bar[0]}}
+                        </td>
+                        <td>
+                            {{foo[1].reduce((a,c)=>a+c[0], 0)}}%
+                        </td>
+                    </tr>
+                </template>
+            </table>
+        </div> -->
+    </div>
+</body>
+<script src="foo.js"></script>
+<script>
+    const app = new Vue({
+        el: "#app",
+        data: {
+            res
+        },
+        computed: {
+            formatted_res() {
+                let foo = new Set();
+                return this.res.filter(f => {
+                    let bar = f[0][1].map(e => e[0] + e[1]).join('');
+                    if (foo.has(bar)) return 0;
+                    return foo.add(bar);
+                }).map(r => [r[0][1].map(e => `${e[1]}(${e[0]}%)`).join("/"), ...[...r.map(foo => [foo[0], foo[1].map(bar => `${bar[3]} ${bar[1]} @\$${bar[2]} = ${bar[0]}`), Math.round(foo[1].reduce((a, c) => a + c[0], 0)) + '%'])]])
+                    .sort(function (a, b) {
+                        return Number(b.at(-1)[2].slice(0, -1)) - Number(a.at(-1)[2].slice(0, -1));
+                    })
+
+
+
+            }
+        }
+    })
+</script>
+
+</html>

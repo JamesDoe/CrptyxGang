@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://unpkg.com/vue"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.0.1/d3.min.js"
+    integrity="sha512-1e0JvdNhUkvFbAURPPlFKcX0mWu/b6GT9e0uve7BW4MFxJ15q4ZCd/Llz+B7/oh+qhw7/l6Q1ObPt6aAuR01+Q=="
+    crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <style>
+    body {
+      font-family: 'Roboto', sans-serif;
+    }
+
+    .y-labels {
+      font-size: .62em
+    }
+  </style>
+  <title>Document</title>
+</head>
+
+<body>
+  <div id="app">
+    <div id="my_dataviz"></div>
+  </div>
+</body>
+<script src="bar.js"></script>
+<script>
+  const parseDate = d3.timeParse("%Y%m%d");
+  var foo, bar, inputs = [], baz, foobar, qux;
+  const app = new Vue({
+    el: "#app",
+    data: {
+      res
+    },
+    mounted() {
+      var margin = { top: 10, right: 30, bottom: 30, left: 50 },
+        width = 460 - margin.left - margin.right,
+        height = 400 - margin.top - margin.bottom;
+
+      // append the svg object to the body of the page
+      var svg = d3.select("#my_dataviz")
+        .append("svg")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+        .append("g")
+        .attr("transform",
+          "translate(" + margin.left + "," + margin.top + ")");
+
+      //Read the data
+      d3.csv("https://raw.githubusercontent.com/holtzy/data_to_viz/master/Example_dataset/3_TwoNumOrdered_comma.csv",
+
+        // When reading the csv, I must format variables:
+        function (d) {
+          return { date: d3.timeParse("%Y-%m-%d")(d.date), value: d.value }
+        },
+
+        // Now I can use this dataset:
+        function (data) {
+
+          // Add X axis --> it is a date format
+          var x = d3.scaleTime()
+            .domain(d3.extent(data, function (d) { return d.date; }))
+            .range([0, width]);
+          svg.append("g")
+            .attr("transform", "translate(0," + height + ")")
+            .call(d3.axisBottom(x));
+
+          // Add Y axis
+          var y = d3.scaleLinear()
+            .domain([0, d3.max(data, function (d) { return +d.value; })])
+            .range([height, 0]);
+          svg.append("g")
+            .call(d3.axisLeft(y));
+
+          // Add the area
+          svg.append("path")
+            .datum(data)
+            .attr("fill", "#cce5df")
+            .attr("stroke", "#69b3a2")
+            .attr("stroke-width", 1.5)
+            .attr("d", d3.area()
+              .x(function (d) { return x(d.date) })
+              .y0(y(0))
+              .y1(function (d) { return y(d.value) })
+            )
+
+        })
+    },
+    computed: {
+      // ticks() {
+      //     return this.res.portfolio.ticks.map(e => parseDate(e))
+      //     // return this.res.ticks.map(e=>(new Date (e.slice(0,4), e.substring(4,6), e.slice(-2))))
+      //     // return this.res.ticks.map(e=>({date_obj: new Date (e.slice(0,4), e.substring(4,6), e.slice(-2)), label: e}))
+      // },
+      // qux() {
+      //     return foobar.reduce((a, c) => {
+      //         (a[c.date] || (a[c.date] = {}))[c.ticker] = c.USD
+      //         return a;
+      //     }, {})
+      // }
+      // // current_return() {
+      // //     return this.res.api_data.sort((a, b) => a[0] - b[0]).at(-1)[1].map(e => e.USD * this.current_stats[e.symbol]).reduce((partial_sum, a) => partial_sum + a, 0)
+      // // },
+      // // current_stats() {
+      // //     return {
+      // //         ...this.res.tx.reduce((a, c) => {
+      // //             let multiplier = (c.type === "sell" ? -1 : 1);
+      // //             a.amt_invested += c.amt * multiplier;
+      // //             let ticker = c.ticker.toUpperCase();
+      // //             a[ticker] = a[ticker] || 0;
+      // //             a[ticker] += c.shares * multiplier;
+      // //             return a;
+      // //         }, { amt_invested: 0 })
+      // //     }
+      // // },
+      // // funds_invested() {
+      // //     return 
+      // // }
+    }
+  })
+</script>
+
+</html>

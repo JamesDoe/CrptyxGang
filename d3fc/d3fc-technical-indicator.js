@@ -1,0 +1,2 @@
+export { default as indicatorMovingAverage } from './d3fc-technical-indicator/movingAverage';
+export { default as indicatorExponentialMovingAverage } from './d3fc-technical-indicator/exponentialMovingAverage';

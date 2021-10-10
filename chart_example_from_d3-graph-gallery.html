@@ -1,0 +1,326 @@
+<!-- Code from d3-graph-gallery.com -->
+<!DOCTYPE html>
+<meta charset="utf-8">
+
+<head>
+  <!-- Load d3.js -->
+  <script src="https://d3js.org/d3.v4.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/vue"></script>
+
+  <style>
+    body {
+      font-family: 'Roboto', sans-serif;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="app">
+    <!-- Create a div where the graph will take place -->
+    <div>{{dates}}</div>
+    <div id="my_dataviz"></div>
+    <div>
+      <div style="align-items: center; display: flex; padding-left: 10px" v-for="token in portfolio">
+        <div style="width:300px; display:inline-flex">
+          Φ{{today[maps.Coinmarketcap_to_CoinGecko[token[0].toUpperCase()]].usd}}
+          Δ{{today[maps.Coinmarketcap_to_CoinGecko[token[0].toUpperCase()]].usd*token[1].shares-token[1].usd}}</div>
+        <!-- token name -->
+        <div style="width:100px; display:inline-flex; font-size:1.62em">{{token[0].toUpperCase()}}</div>
+        <!-- token name -->
+        <div style="width:150px; display:inline-flex">ε{{token[1].shares}}</div>
+        <div style="width:150px; display:inline-flex">μ{{token[1].avg_purchase_price}}</div>
+      </div>
+    </div>
+  </div>
+</body>
+<script src="bar.js"></script>
+<script>
+  // var dates;
+  const h = 400, w = h * 1.618, date_parser = d3.timeParse("%Y%m%d");;
+  var dates;
+
+  const app = new Vue({
+    el: "#app",
+    data: {
+      dates,
+      res,
+      maps: {
+        Coinmarketcap_to_CoinGecko: {
+          "MATIC": "matic-network",
+          "ALGO": "algorand",
+          "BTC": "bitcoin",
+          "VET": "vechain"
+        }
+      },
+      today: {
+        "matic-network": {
+          "usd": 1.24
+        },
+        "algorand": {
+          "usd": 2.16
+        },
+        "bitcoin": {
+          "usd": 44504
+        },
+        "vechain": {
+          "usd": 0.112853
+        }
+      }
+    },
+    computed: {
+      portfolio() {
+        return Object.entries(JSON.parse(JSON.stringify(this.res.portfolio.totals)))
+      },
+      qux() {
+        return this.res.data.sort((a, b) => {
+          return Number(a.date) - Number(b.date)
+        }).reduce((a, c) => {
+          (a[c.date] || (a[c.date] = {}))[c.ticker] = c.USD
+          return a;
+        }, {})
+      }
+    },
+    mounted() {
+      // set the dimensions and margins of the graph
+      var margin = { top: 10, right: 30, bottom: 30, left: 50 },
+        width = w - margin.left - margin.right,
+        height = h - margin.top - margin.bottom;
+
+      let ledger = {},
+        portfolio_perf_snapshots = this.res.data.map(e => {
+          if (e.shares_cum_sum) ledger[e.ticker] = this.qux[e.date][e.ticker] * e.shares_cum_sum;
+          return [date_parser(e.date), d3.sum(Object.values(ledger))]
+        })
+      let portfolio_perf_snapshots2 = {};
+      this.res.data.forEach(e => {
+        // (portfolio_perf_snapshots2[e.date] || (portfolio_perf_snapshots2[e.date] = {}))[e.ticker] = e.shares_cum_sum * this.qux[e.date][e.ticker];
+        (portfolio_perf_snapshots2[e.date] || (portfolio_perf_snapshots2[e.date] = {}))[e.ticker] = e.shares_cum_sum;
+        // return [date_parser(e.date), d3.sum(Object.values(ledger))]
+      })
+
+      let my_table = Object.entries(portfolio_perf_snapshots2).map(e => [e[0], e[1].ALGO, e[1].BTC, e[1].MATIC, e[1].VET])
+      let col0 = my_table.map(e => e[0]);
+      let col1 = run_val(my_table.map(e => e[1]));
+      let col2 = run_val(my_table.map(e => e[2]));
+      let col3 = run_val(my_table.map(e => e[3]));
+      let col4 = run_val(my_table.map(e => e[4]));
+      let cols = [col0, col1, col2, col3, col4];
+      portfolio_perf_snapshots2 = Array.from(Array(col0.length)).map((e, i) => [col0[i], d3.sum([col1[i] * this.qux[col0[i]]["ALGO"], col2[i] * this.qux[col0[i]]["BTC"], col3[i] * this.qux[col0[i]]["MATIC"], col4[i] * this.qux[col0[i]]["VET"]])])
+      portfolio_perf_snapshots_val_cum = Array.from(Array(col0.length)).map((e, i) => [col0[i], col1[i] * this.qux[col0[i]]["ALGO"], col2[i] * this.qux[col0[i]]["BTC"], col3[i] * this.qux[col0[i]]["MATIC"], col4[i] * this.qux[col0[i]]["VET"]]).at(-1)
+      portfolio_perf_snapshots_shares_cum = Array.from(Array(col0.length)).map((e, i) => [col0[i], col1[i], col2[i], col3[i], col4[i]]).at(-1)
+      let fred = new DataFrame([['param', 'date', 'ALGO', 'BTC', 'MATIC', 'VET'], ['val', ...portfolio_perf_snapshots_val_cum], ['shares', ...portfolio_perf_snapshots_shares_cum]]);
+      console.log(Object.fromEntries(fred.rows.map(e => e.reduce((a, c, i) => { a[fred.col_headers[i]] = c; return a; }, {})).map(e => [e.param, e])))
+      // console.log(fred.col_headers('ALGO'))
+
+
+      // append the svg object to the body of the page
+      var svg = d3.select("#my_dataviz")
+        .append("svg")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+        .append("g")
+        .attr("transform",
+          "translate(" + margin.left + "," + margin.top + ")");
+
+
+
+      dates = Array.from(new Set(this.res.data.map(e => e.date))).sort().map(e => date_parser(e));
+
+      let dates_extent = d3.extent(dates)
+
+      var x = d3.scaleTime()
+        .domain(dates_extent)
+        .range([0, width])
+        .nice();
+      let inputs_cum = this.res.data.filter(e => e.tx_usd_cum_sum).map(e => [date_parser(e.date), e.tx_usd_cum_sum]);
+      if (inputs_cum.at(-1)[0] < dates_extent[1]) inputs_cum.push([dates_extent[1], inputs_cum.at(-1)[1]])
+      // console.log(inputs_cum.at(-1)[0], dates_extent[1])
+      let inputs_extent = d3.extent(inputs_cum, function (d) { return d[1]; })
+      var y = d3.scaleLinear()
+        .domain([0, Math.max(inputs_extent[1], d3.max(portfolio_perf_snapshots2, (d => d[1])))])
+        .range([height, 0])
+// https://stackoverflow.com/questions/18151455/d3-js-create-objects-on-top-of-each-other/18461464
+      // var v_rules = svg.append("g")
+      //   .attr("class", "v_rules")
+      // v_rules.selectAll(".rect")
+      //   .data(dates)
+      //   .enter()
+      //   .append("rect")
+      //   .attr("x", d => x(d))
+      //   .attr("y", 0)
+      //   .attr("width", 2)
+      //   .attr("height", height)
+      //   .attr("fill", "#F1FCFA");
+
+        var h_rules = svg.append("g")
+        .attr("class", "h_rules")
+
+      h_rules.selectAll(".rect")
+        .data(y.ticks())
+        .enter()
+      .append("rect")
+        .attr("x", 0)
+        .attr("y", d => y(d)-1.5)
+        .attr("width", width)
+        .attr("height", 3)
+        .attr("fill", "#CBEDE5");
+
+      svg.append("g")
+        .attr("transform", "translate(0," + height + ")")
+        .call(d3.axisBottom(x).tickFormat((d, i) => `${d.getMonth() + 1}/${d.getDate()}`));
+
+
+      // .nice();
+      svg.append("g")
+        .call(d3.axisLeft(y));
+
+      var line = d3.line()
+        .curve(d3.curveStepAfter)
+        .x(d => x(d[0]))
+        .y(d => y(d[1]))
+      portfolio_perf_snapshots2 = portfolio_perf_snapshots2.map(e => [date_parser(e[0]), e[1]])
+      if (portfolio_perf_snapshots2.at(-1)[0] < dates_extent[1]) portfolio_perf_snapshots2.push([dates_extent[1], portfolio_perf_snapshots2.at(-1)[1]])
+      console.log(portfolio_perf_snapshots2.at(-1)[0], dates_extent[1])
+      svg.append("path")
+        .attr("d", line(portfolio_perf_snapshots2))
+        // .attr("d", line((portfolio_perf_snapshots.filter((e, i) => !i || portfolio_perf_snapshots[i - 1][1] !== e[1]))))
+        .attr("stroke", "#305280")
+        .attr("stroke-width", 3)
+        .attr("fill", "none")
+        .attr("shape-rendering", "crispEdges")
+
+      svg.append("path")
+        .datum(inputs_cum)
+        .attr("fill", "#9BD4C7")
+        .attr("fill-opacity", ".38")
+        .attr("stroke", "#69b3a2")
+        .attr("stroke-width", 1.5)
+        .attr("d", d3.area()
+          .curve(d3.curveStepAfter)
+          .x(d => x(d[0]))
+          .y0(height)
+          .y1(d => y(d[1]))
+        )
+
+
+
+
+      // console.log(portfolio_perf_snapshots2)
+      // console.log(quux.map((e,i)=>i?(e[i-1]||0)+(e||0):(e||0)))
+
+      function DataFrame(data, col_headers, rows_labels) {
+        // console.log(data)
+        if (!col_headers) col_headers = data.splice(0, 1)[0];
+        // console.log(col_headers)
+        let
+          cols = col_headers.reduce((a, c, i) => {
+            // console.log(c)
+            a[c] = data.map(e => e[i]);
+            return a;
+          }, {});
+
+        return {
+          col(col_name) {
+            // console.log(cols)
+            return cols[col_name]
+          },
+          col_headers: (function () { return JSON.parse(JSON.stringify(col_headers)) }()),
+          rows: (function () { return JSON.parse(JSON.stringify(data)) }())
+        };
+      }
+
+
+
+
+      function cum_sum(quux) {
+        let quuz = []
+        quux.forEach((e, i) => quuz.push((quuz[i - 1] || 0) + (e || 0)))
+        return quuz
+      }
+      function run_val(quux) {
+        let quuz = [];
+        quux.forEach((e, i) => {
+          quuz.push(e || quuz[i - 1] || 0)
+        })
+        // quux.forEach((e, i) => { return quuz.push(e || quux[i - 1] || 0) })
+        // console.log(quuz)
+        return quuz
+      }
+
+
+      //             svg.selectAll("circle")
+      // .data((portfolio_perf_snapshots.filter((e, i) => !i || portfolio_perf_snapshots[i - 1][1] !== e[1])))
+      // .enter().append("circle")
+      // .style("stroke", "gray")
+      // .style("fill", "black")
+      // .attr("r", 40)
+      // .attr("cx", 50)
+      // .attr("cy", 20);
+      inputs_cum = inputs_cum.filter((e, i) => !i || inputs_cum[i - 1][1] !== e[1])
+
+
+      svg.selectAll('.circle')
+        .data(inputs_cum)
+        .enter().append('circle')
+        .attr('r', 3 * 1.618)
+        .attr('cx', d => x(d[0]))
+        .attr('cy', d => y(d[1]))
+        .attr('fill', '#69b3a2')
+
+      svg.selectAll('.circle')
+        .data(inputs_cum)
+        .enter().append('circle')
+        .attr('fill', 'white')
+        .attr('r', 3)
+        .attr('cx', d => x(d[0]))
+        .attr('cy', d => y(d[1]));
+
+
+
+      // //Read the data
+      // d3.csv("https://raw.githubusercontent.com/holtzy/data_to_viz/master/Example_dataset/3_TwoNumOrdered_comma.csv",
+
+      //   // When reading the csv, I must format variables:
+      //   function (d) {
+      //     return { date: d3.timeParse("%Y-%m-%d")(d.date), value: d.value }
+      //   },
+
+      //   // Now I can use this dataset:
+      //   function (data) {
+      //     app.dates = d3.extent(data.map(e => e.date))
+      //     // Add X axis --> it is a date format
+      //     var x = d3.scaleTime()
+      //       // .domain(d3.extent(data, function (d) { return d.date; }))
+      //       .domain(app.dates)
+      //       .range([0, width])
+      //       .nice();
+      //     svg.append("g")
+      //       .attr("transform", "translate(0," + height + ")")
+      //       .call(d3.axisBottom(x));
+
+      //     // Add Y axis
+      //     var y = d3.scaleLinear()
+      //       .domain([0, d3.max(data, function (d) { return +d.value; })])
+      //       .range([height, 0])
+      //       .nice();
+      //     svg.append("g")
+      //       .call(d3.axisLeft(y));
+
+      //     // Add the area
+      //     svg.append("path")
+      //       .datum(data)
+      //       .attr("fill", "#cce5df")
+      //       .attr("stroke", "#69b3a2")
+      //       .attr("stroke-width", 1.5)
+      //       .attr("d", d3.area()
+      //         .x(function (d) { return x(d.date) })
+      //         .y0(y(0))
+      //         .y1(function (d) { return y(d.value) })
+      //       )
+
+      //   })
+    }
+  });
+
+</script>

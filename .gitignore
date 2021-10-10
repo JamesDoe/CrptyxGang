@@ -1,0 +1,19 @@
+# # Ignore everything
+# *
+# # But descend into directories
+# !*/
+# # Recursively allow files under subtree
+# !/subtree/**
+# # You can be specific with these rules
+# !/some/other/deep/path/**
+# !.gitignore
+
+*
+!*
+!config.js
+!palette.js
+!baz.html
+!baz2.html
+!baz3.html
+!qux.html
+!d3fc/**
