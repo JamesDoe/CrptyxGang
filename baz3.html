@@ -268,59 +268,63 @@
 
 <body>
     <div id="app">
-        <div style="display:flex; flex-direction: column ;align-items: center;">
-            <div style="text-align: center; width: 100%;">{{time}}</div>
-            <div style="width: 100%;">
-                <div style="display:flex;width: 100%;justify-content: center; align-items: center;">
-
-                    <span style="text-align: right; flex: 1; padding: 0 .38em">Randomly Generated IDs
-                    </span>
-                    <span style="flex: 1;padding: 0 .38em ">
-                        AI
-                    </span>
-                </div>
-            </div>
-            <div style="width: 100%;">
-                <div style="display:flex;width: 100%;justify-content: center; align-items: center;">
-
-                    <span style=" flex: 1; ">
-                        <div style="display: flex; align-items: center; justify-content: end">
-                            <span>
-                                {{fantasy_points[1]}}
-                            </span>
-                            <svg width="62px" viewbox="0 0 16 16">
-                                <g>
-                                    <rect :x='i%16' :y="Math.floor(i/16)" :style="`fill:${p}`"
-                                        v-for="p,i in my_random_id.map(e=>palette_to_hex[getRandomInt(255)])" width="1"
-                                        height="1"></rect>
-                                </g>
-                            </svg>
-                        </div>
-
-                        
-
-
-                    </span>
-                    <span style="flex: 1; ">
-                        <div style="display: flex; align-items: center;">
-                            <svg width="62px" viewbox="0 0 16 16">
-                                <g>
-                                    <rect :x='i%16' :y="Math.floor(i/16)" :style="`fill:${p}`"
-                                        v-for="p,i in my_id.map(e=>'#'+e.map(f=>f.toString(16)).join('').toUpperCase())"
-                                        width="1" height="1"></rect>
-                                </g>
-                            </svg>
-                            <span>
-                                {{state.points*(todaysprices.USDT&&todaysprices.USDT.USD.PRICE||1)}}
-                            </span>
-                        </div>
-                    </span>
-                </div>
-            </div>
-            
-        </div>
         
-        <div class="e1_2">
+         
+        <div >
+            <div style="display:flex; flex-direction: column ;align-items: center;">
+                <div style="text-align: center; width: 100%;">
+                    <span v-if="Number(time.split(':')[0]) > 0 || Number(time.split(':')[1]) > 0">{{time}}</span>
+                    <span v-else>You {{'win!'}}</span>
+                </div>
+                <div style="width: 100%;">
+                    <div style="display:flex;width: 100%;justify-content: center; align-items: center;">
+    
+                        <span style="text-align: right; flex: 1; padding: 0 .38em">Randomly Generated IDs
+                        </span>
+                        <span style="flex: 1;padding: 0 .38em ">
+                            AI
+                        </span>
+                    </div>
+                </div>
+                <div style="width: 100%;">
+                    <div style="display:flex;width: 100%;justify-content: center; align-items: center;">
+    
+                        <span style=" flex: 1; ">
+                            <div style="display: flex; align-items: center; justify-content: end">
+                                <span>
+                                    {{fantasy_points[1]}}
+                                </span>
+                                <svg width="62px" viewbox="0 0 16 16">
+                                    <g>
+                                        <rect :x='i%16' :y="Math.floor(i/16)" :style="`fill:${p}`"
+                                            v-for="p,i in my_random_id.map(e=>palette_to_hex[getRandomInt(255)])" width="1"
+                                            height="1"></rect>
+                                    </g>
+                                </svg>
+                            </div>
+    
+                            
+    
+    
+                        </span>
+                        <span style="flex: 1; ">
+                            <div style="display: flex; align-items: center;">
+                                <svg width="62px" viewbox="0 0 16 16">
+                                    <g>
+                                        <rect :x='i%16' :y="Math.floor(i/16)" :style="`fill:${p}`"
+                                            v-for="p,i in my_id.map(e=>'#'+e.map(f=>f.toString(16)).join('').toUpperCase())"
+                                            width="1" height="1"></rect>
+                                    </g>
+                                </svg>
+                                <span>
+                                    {{state.points*(todaysprices.USDT&&todaysprices.USDT.USD.PRICE||1)}}
+                                </span>
+                            </div>
+                        </span>
+                    </div>
+                </div>
+                
+            </div>
            
             <!--  [[[x_loc, y_loc] for y_loc in range(16)] for x_loc in [loc for loc in range(16)]]
 
