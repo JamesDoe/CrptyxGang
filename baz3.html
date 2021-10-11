@@ -268,20 +268,65 @@
 
 <body>
     <div id="app">
-        <div style="display: flex">
-            <div :style="`width:24px; height:24 px; background-color: rgb(${p.join(',')})`"
-                v-for="p in Array(256).fill(null).map((e, i) => clut8ColorComponents(i))">
-                &nbsp;foo
-            </div>
-        </div>
-        <div class="e1_2">
-            <div>my points: {{fantasy_points[1]}}</div>
-            <div>AI's points: {{state.points*(todaysprices.USDT&&todaysprices.USDT.USD.PRICE||1)}}</div>
-            <!-- <div>{{todaysprices.USDT&&todaysprices.USDT.USD.PRICE||'no'}}</div> -->
-            <!-- <div>AI's points: {{state.points*(todaysprices.USDT||1)}}</div> -->
-            <span v-if="Number(time.split(':')[0]) > 0 || Number(time.split(':')[1]) > 0">{{time}}</span>
-            <span v-else>You {{'win!'}}</span>
+        <div style="display:flex; flex-direction: column ;align-items: center;">
+            <div style="text-align: center; width: 100%;">{{time}}</div>
+            <div style="width: 100%;">
+                <div style="display:flex;width: 100%;justify-content: center; align-items: center;">
 
+                    <span style="text-align: right; flex: 1; padding: 0 .38em">Randomly Generated IDs
+                    </span>
+                    <span style="flex: 1;padding: 0 .38em ">
+                        AI
+                    </span>
+                </div>
+            </div>
+            <div style="width: 100%;">
+                <div style="display:flex;width: 100%;justify-content: center; align-items: center;">
+
+                    <span style=" flex: 1; ">
+                        <div style="display: flex; align-items: center; justify-content: end">
+                            <span>
+                                {{fantasy_points[1]}}
+                            </span>
+                            <svg width="62px" viewbox="0 0 16 16">
+                                <g>
+                                    <rect :x='i%16' :y="Math.floor(i/16)" :style="`fill:${p}`"
+                                        v-for="p,i in my_random_id.map(e=>palette_to_hex[getRandomInt(255)])" width="1"
+                                        height="1"></rect>
+                                </g>
+                            </svg>
+                        </div>
+
+                        
+
+
+                    </span>
+                    <span style="flex: 1; ">
+                        <div style="display: flex; align-items: center;">
+                            <svg width="62px" viewbox="0 0 16 16">
+                                <g>
+                                    <rect :x='i%16' :y="Math.floor(i/16)" :style="`fill:${p}`"
+                                        v-for="p,i in my_id.map(e=>'#'+e.map(f=>f.toString(16)).join('').toUpperCase())"
+                                        width="1" height="1"></rect>
+                                </g>
+                            </svg>
+                            <span>
+                                {{state.points*(todaysprices.USDT&&todaysprices.USDT.USD.PRICE||1)}}
+                            </span>
+                        </div>
+                    </span>
+                </div>
+            </div>
+            
+        </div>
+        
+        <div class="e1_2">
+           
+            <!--  [[[x_loc, y_loc] for y_loc in range(16)] for x_loc in [loc for loc in range(16)]]
+
+>>> [list(list(im.getpixel(r)) for r in row) for row in [[tuple([x_loc, y_loc]) for y_loc in range(16)] for x_loc in [loc for loc in range(16)]] ]
+[[[204, 204, 204], [204, 204, 204], [203, 203, 203], [204, 204, 204], [204, 204, 204], [204, 204, 204], [204, 204, 204], [204, 204, 204], [204, 204, 204], [187, 187, 187], [170, 170, 170], [136, 136, 136], [136, 136, 136], [119, 119, 119], [136, 136, 136], [119, 119, 119]], [[221, 221, 221], [221, 221, 221], [221, 221, 221], [221, 221, 221], [221, 221, 221], [221, 221, 221], [221, 221, 221], [220, 220, 220], [221, 221, 221], [204, 204, 204], [136, 136, 136], [85, 85, 85], [85, 85, 85], [119, 119, 119], [136, 136, 136], [170, 170, 170]], [[221, 221, 221], [221, 221, 221], [221, 221, 221], [204, 204, 204], [204, 204, 204], [204, 204, 204], [187, 187, 187], [187, 187, 187], [204, 204, 204], [221, 221, 221], [187, 187, 187], [153, 153, 153], [85, 85, 85], [170, 170, 170], [153, 153, 153], [85, 85, 85]], [[221, 221, 221], [187, 187, 187], [85, 85, 85], [85, 85, 85], [103, 103, 103], [68, 68, 68], [51, 51, 51], [51, 51, 51], [68, 68, 68], [101, 101, 101], [153, 153, 153], [170, 170, 170], [221, 221, 221], [170, 170, 170], [85, 85, 85], [136, 136, 136]], [[204, 204, 204], [136, 136, 136], [102, 102, 102], [68, 68, 68], [51, 51, 51], [51, 51, 51], [51, 51, 51], [51, 51, 51], [51, 51, 51], [51, 51, 51], [85, 85, 85], [68, 68, 68], [85, 85, 85], [51, 51, 51], [34, 34, 34], [34, 34, 34]], [[170, 170, 170], [102, 102, 102], [119, 119, 119], [136, 136, 136], [136, 136, 136], [51, 51, 51], [51, 51, 51], [85, 85, 85], [85, 85, 85], [68, 68, 68], [51, 51, 51], [51, 51, 51], [51, 51, 51], [68, 68, 68], [85, 85, 85], [85, 85, 85]], [[102, 102, 102], [170, 170, 170], [221, 221, 221], [221, 221, 221], [136, 136, 136], [51, 51, 51], [34, 34, 34], [67, 67, 67], [136, 136, 136], [102, 102, 102], [85, 85, 85], [102, 102, 102], [68, 68, 68], [51, 51, 51], [68, 68, 68], [85, 85, 85]], [[85, 85, 85], [204, 204, 204], [238, 238, 238], [238, 238, 238], [136, 136, 136], [34, 34, 34], [51, 51, 51], [85, 85, 85], [136, 136, 136], [171, 171, 171], [170, 170, 170], [153, 153, 153], [136, 136, 136], [68, 68, 68], [51, 51, 51], [69, 69, 69]], [[102, 102, 102], [237, 239, 238], [238, 238, 238], [238, 238, 238], [136, 136, 136], [34, 34, 34], [51, 51, 51], [119, 119, 119], [135, 135, 135], [204, 204, 204], [119, 119, 119], [153, 153, 153], [187, 187, 187], [102, 102, 102], [51, 51, 51], [85, 85, 85]], [[102, 102, 102], [237, 237, 237], [239, 237, 238], [238, 238, 238], [170, 170, 170], [68, 68, 68], [187, 187, 187], [221, 221, 221], [119, 119, 119], [119, 119, 119], [119, 119, 119], [135, 135, 135], [170, 170, 170], [102, 102, 102], [51, 51, 51], [85, 85, 85]], [[153, 153, 153], [238, 238, 238], [238, 238, 238], [238, 238, 238], [170, 170, 170], [101, 52, 48], [152, 102, 101], [153, 153, 153], [102, 102, 102], [102, 102, 102], [85, 85, 85], [102, 102, 102], [102, 102, 102], [85, 85, 85], [51, 51, 51], [51, 51, 51]], [[49, 103, 103], [221, 221, 221], [238, 236, 237], [238, 238, 238], [152, 152, 152], [100, 50, 49], [153, 50, 51], [101, 51, 50], [119, 119, 119], [136, 136, 136], [102, 102, 102], [102, 102, 102], [68, 68, 68], [51, 51, 51], [34, 34, 34], [51, 51, 51]], [[102, 102, 102], [170, 170, 170], [221, 221, 221], [203, 204, 206], [203, 153, 152], [153, 50, 51], [153, 50, 51], [101, 51, 50], [85, 85, 85], [68, 68, 68], [51, 51, 51], [68, 68, 68], [51, 51, 51], [34, 34, 34], [34, 34, 34], [51, 51, 51]], [[187, 187, 187], [102, 102, 102], [153, 153, 153], [136, 136, 136], [119, 119, 119], [101, 51, 50], [101, 51, 50], [101, 51, 50], [85, 85, 85], [68, 68, 68], [51, 51, 51], [85, 85, 85], [102, 102, 102], [101, 101, 101], [51, 51, 51], [34, 34, 34]], [[221, 221, 221], [204, 204, 204], [170, 170, 170], [85, 85, 85], [68, 68, 68], [101, 51, 50], [68, 68, 68], [68, 68, 70], [85, 85, 85], [85, 85, 85], [154, 154, 154], [204, 204, 204], [238, 238, 238], [221, 221, 221], [221, 221, 221], [51, 51, 51]], [[238, 238, 238], [222, 222, 222], [221, 221, 221], [187, 187, 187], [136, 136, 136], [119, 119, 117], [136, 136, 136], [171, 169, 170], [187, 187, 187], [187, 187, 187], [204, 204, 204], [204, 204, 204], [221, 221, 221], [238, 238, 238], [187, 187, 187], [136, 136, 136]]]
+-->
         </div>
         <div v-if="state.points_to_start">
             <span><span>POINTS</span><span>Fantasy Crypto Points</span></span>
@@ -333,10 +378,11 @@
 </body>
 <script src="palette.js"></script>
 <script>
+
     scale = d3.scaleLinear().domain([0, 1]).range([0, 255]).nice()
 
     function clut8ColorComponents(n) {
-        if (n > 256) n = 255;
+        if (n > 256 || n < 0) n = 255;
         return [scale(palette[n].red), scale(palette[n].blue), scale(palette[n].green)]
         // return pallet[n].map(e => [scale(e.red)])
     }
@@ -350,7 +396,7 @@
 
     }
 
-const EoG = 2;
+
 
     async function _heartbeat(func, wait_time = 15000) {
         if (!func) return 0;
@@ -389,16 +435,19 @@ const EoG = 2;
             },
             fantasy_points() {
                 let foo = Object.entries(this.state).filter(e => e[0].slice(0, 6) != 'points');
-                return [foo, d3.sum(foo.map(e=>{
-                    console.log('prices',this.todaysprices[e[0]])
-                    if(!this.todaysprices[e[0]])return 0;
-                    console.log(e[1],this.todaysprices[e[0]].USD.PRICE);
-                    return e[1]*this.todaysprices[e[0]].USD.PRICE;
+                return [foo, d3.sum(foo.map(e => {
+                    console.log('prices', this.todaysprices[e[0]])
+                    if (!this.todaysprices[e[0]]) return 0;
+                    console.log(e[1], this.todaysprices[e[0]].USD.PRICE);
+                    return e[1] * this.todaysprices[e[0]].USD.PRICE;
                 }))]
             },
             todaysprices() {
                 return Object.fromEntries(this.cryptocompare_prices)
             },
+            palette_to_hex() {
+                return this.palette.map(e => "#" + (scale(e.red).toString(16) + scale(e.green).toString(16) + scale(e.blue).toString(16)).toUpperCase())
+            }
         },
         el: "#app",
         data: {
@@ -422,7 +471,11 @@ const EoG = 2;
             end: new Date().getTime() + EoG * 60 * 1000,
             swapping: null,
             time: '',
-            gameover: 0
+            gameover: 0,
+            my_id,
+            getRandomInt,
+            random_id: (function () { return Array(256).fill(null).map(e => getRandomInt(255)) }()),
+            my_random_id
 
         },
         methods: {
@@ -433,11 +486,11 @@ const EoG = 2;
                 // console.log(to)
                 if (this.gameover) return alert('Game over.');
                 console.log(from.symbol);
-                console.log(!to , !to.symbol , !from.amount , from.amount > this.state[from.symbol],this.state.points_to_start);
-                if (!to || !to.symbol || !from.amount || from.amount > (this.state[from.symbol]||this.state.points_to_start)) return alert('Not enough funds.');
+                console.log(!to, !to.symbol, !from.amount, from.amount > this.state[from.symbol], this.state.points_to_start);
+                if (!to || !to.symbol || !from.amount || from.amount > (this.state[from.symbol] || this.state.points_to_start)) return alert('Not enough funds.');
                 // fetch(`https://min-api.cryptocompare.com/data/v2/histominute?fsym=${from.symbol||'USD'}&tsym=${to.symbol}&limit=1`).then(e => e.json()).then(e => (console.log(e.Data)))
                 fetch(`https://min-api.cryptocompare.com/data/v2/histominute?fsym=${from.symbol || 'USD'}&tsym=${to.symbol}&limit=1`).then(e => e.json()).then(e => (console.log(e.Data.Data[0], from.amount, e.Data.Data[0].close * from.amount) || console.log(this.plays.push([{ [from.symbol || 'points_to_start']: -1 * from.amount, [to.symbol]: e.Data.Data[0].close * from.amount }]))))
-                this.swapping=0
+                this.swapping = 0
                 // this.to.amount = 0;
                 // this.to.symbol = ''
             },
@@ -449,7 +502,7 @@ const EoG = 2;
                 let now = new Date().getTime();
                 // console.log(Math.floor(Math.floor((this.end-now)/1000)%60))
                 this.time = `${Math.floor(Math.floor((this.end - now) / 1000) / 60)}:${Math.floor(Math.floor((this.end - now) / 1000) % 60)}`;
-                if (this.end - this.start <= 0) this.gameover = 1
+                if (this.end - now <= 0) this.gameover = 1
             },
             async get_price_from_cryptocompare() {
                 // if (!this.c_price) return console.log('Price data not in sync.');
@@ -467,7 +520,7 @@ const EoG = 2;
             fetch('https://min-api.cryptocompare.com/data/top/totaltoptiervolfull?limit=100&tsym=USD').then(e => e.json()).then(e => (console.log(this.cryptos = e.Data)))
             // fetch('https://min-api.cryptocompare.com/data/blockchain/list?api_key=583932a385edf4530535beb8494248479013f3b340bd5e52368f84b29e227492').then(e => e.json()).then(e => (console.log(this.cryptos = e.Data)))
             console.log("Game started at: " + new Date(this.start))
-            _heartbeat(this.get_price_from_cryptocompare, 3000);
+            _heartbeat(this.get_price_from_cryptocompare, 10000);
             _heartbeat(this.run_clock, 1000);
 
             // console.log("Penalty time starts at: " + new Date(this.start + this.EoG * 60 * 1000))
