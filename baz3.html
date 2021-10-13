@@ -326,9 +326,42 @@
         
                     border-radius: 2.61846597222792px; width: 123.066297190163px; height: 76.054971663521px">
                    <div style='font-family: "Roboto Condensed"; color: black; font-size: 0.8em;'>
-                        Get minutely data
-                        Get hourly data
-                        Get daily data
+                    <span style="user-select: none;height: 24px;line-height: 24px">
+                        Hourly OHLC Data:
+                    </span>
+                    <span style="display: inline-block; height: 24px" @click="HOU=!HOU">
+                        <svg style="padding: 0; margin: 0; pointer-events:none;" v-if="!HOU" width="24" height="24"
+                            xmlns="http://www.w3.org/2000/svg" fill="lightgray" fill-rule="evenodd"
+                            clip-rule="evenodd">
+                            <path
+                                d="M18 18h-12c-3.311 0-6-2.689-6-6s2.689-6 6-6h12.039c3.293.021 5.961 2.701 5.961 6 0 3.311-2.688 6-6 6zm-12-10c2.208 0 4 1.792 4 4s-1.792 4-4 4-4-1.792-4-4 1.792-4 4-4z" />
+                        </svg>
+                        <svg style="padding: 0; margin: 0; pointer-events:none;" v-else width="24" height="24"
+                            xmlns="http://www.w3.org/2000/svg" fill="dodgerblue" fill-rule="evenodd"
+                            clip-rule="evenodd">
+                            <path
+                                d="M6 18h12c3.311 0 6-2.689 6-6s-2.689-6-6-6h-12.039c-3.293.021-5.961 2.701-5.961 6 0 3.311 2.688 6 6 6zm12-10c-2.208 0-4 1.792-4 4s1.792 4 4 4 4-1.792 4-4-1.792-4-4-4z" />
+                        </svg>
+                    </span>
+                    </div> 
+                   <div style='font-family: "Roboto Condensed"; color: black; font-size: 0.8em;'>
+                    <span style="user-select: none;height: 24px;line-height: 24px">
+                        Daily OHLC Data:
+                    </span>
+                    <span style="display: inline-block; height: 24px" @click="DAY=!DAY">
+                        <svg style="padding: 0; margin: 0; pointer-events:none;" v-if="!DAY" width="24" height="24"
+                            xmlns="http://www.w3.org/2000/svg" fill="lightgray" fill-rule="evenodd"
+                            clip-rule="evenodd">
+                            <path
+                                d="M18 18h-12c-3.311 0-6-2.689-6-6s2.689-6 6-6h12.039c3.293.021 5.961 2.701 5.961 6 0 3.311-2.688 6-6 6zm-12-10c2.208 0 4 1.792 4 4s-1.792 4-4 4-4-1.792-4-4 1.792-4 4-4z" />
+                        </svg>
+                        <svg style="padding: 0; margin: 0; pointer-events:none;" v-else width="24" height="24"
+                            xmlns="http://www.w3.org/2000/svg" fill="dodgerblue" fill-rule="evenodd"
+                            clip-rule="evenodd">
+                            <path
+                                d="M6 18h12c3.311 0 6-2.689 6-6s-2.689-6-6-6h-12.039c-3.293.021-5.961 2.701-5.961 6 0 3.311 2.688 6 6 6zm12-10c-2.208 0-4 1.792-4 4s1.792 4 4 4 4-1.792 4-4-1.792-4-4-4z" />
+                        </svg>
+                    </span>
                     </div> 
                 </div>
                 <!-- <div class="e1_2_1">
@@ -800,7 +833,9 @@
                 ticker_symbols: ['BTC', 'ETH']
             },
             internal_ticker_symbols: [],
-            datapoints: []
+            datapoints: [],
+            HOU: false,
+            DAY: false
 
 
 
@@ -886,34 +921,38 @@
                                     });
                                 }
                             });
-                            // await get_hourly_from_cryptocompare(symbol).then(async datapoints => {
-                            //     if (records = datapoints.length) {
-                            //         await cryptxgang_db.data.bulkAdd(datapoints.map(g => ({ ...g, symbol, freq: 360, platform: 'cryptocompare' }))).then(function (lastKey) {
-                            //             console.log(datapoints.length + ' cryptocompare hourly records added for ' + symbol + '.')
-                            //             // console.log("Done adding 100,000 raindrops all over the place");
-                            //             console.log("Last datapoint id was: " + lastKey); // Will be 100000.
-                            //         }).catch(Dexie.BulkError, function (e) {
-                            //             // console.log('errors', records - e.failures.length)
-                            //             // Explicitely catching the bulkAdd() operation makes those successful
-                            //             // additions commit despite that there were errors.
-                            //             console.error('Some transactions did not succeed. ' + Number(records - e.failures.length) + ' cryptocompare hourly records added successfully for ' + symbol + '.');
-                            //         });
-                            //     }
-                            // });
-                            // await get_daily_from_cryptocompare(symbol).then(async datapoints => {
-                            //     if (records = datapoints.length) {
-                            //         await cryptxgang_db.data.bulkAdd(datapoints.map(g => ({ ...g, symbol, freq: 24, platform: 'cryptocompare' }))).then(function (lastKey) {
-                            //             console.log(datapoints.length + ' cryptocompare hourly records added for ' + symbol + '.')
-                            //             // console.log("Done adding 100,000 raindrops all over the place");
-                            //             console.log("Last datapoint id was: " + lastKey); // Will be 100000.
-                            //         }).catch(Dexie.BulkError, function (e) {
-                            //             // console.log('errors', records - e.failures.length)
-                            //             // Explicitely catching the bulkAdd() operation makes those successful
-                            //             // additions commit despite that there were errors.
-                            //             console.error('Some transactions did not succeed. ' + Number(records - e.failures.length) + ' cryptocompare hourly records added successfully for ' + symbol + '.');
-                            //         });
-                            //     }
-                            // });
+                           if(this.HOU) {
+                            await get_hourly_from_cryptocompare(symbol).then(async datapoints => {
+                                if (records = datapoints.length) {
+                                    await cryptxgang_db.data.bulkAdd(datapoints.map(g => ({ ...g, symbol, freq: 360, platform: 'cryptocompare' }))).then(function (lastKey) {
+                                        console.log(datapoints.length + ' cryptocompare hourly records added for ' + symbol + '.')
+                                        // console.log("Done adding 100,000 raindrops all over the place");
+                                        console.log("Last datapoint id was: " + lastKey); // Will be 100000.
+                                    }).catch(Dexie.BulkError, function (e) {
+                                        // console.log('errors', records - e.failures.length)
+                                        // Explicitely catching the bulkAdd() operation makes those successful
+                                        // additions commit despite that there were errors.
+                                        console.error('Some transactions did not succeed. ' + Number(records - e.failures.length) + ' cryptocompare hourly records added successfully for ' + symbol + '.');
+                                    });
+                                }
+                            });
+                           }
+                            if(this.DAY) {
+                                await get_daily_from_cryptocompare(symbol).then(async datapoints => {
+                                if (records = datapoints.length) {
+                                    await cryptxgang_db.data.bulkAdd(datapoints.map(g => ({ ...g, symbol, freq: 24, platform: 'cryptocompare' }))).then(function (lastKey) {
+                                        console.log(datapoints.length + ' cryptocompare hourly records added for ' + symbol + '.')
+                                        // console.log("Done adding 100,000 raindrops all over the place");
+                                        console.log("Last datapoint id was: " + lastKey); // Will be 100000.
+                                    }).catch(Dexie.BulkError, function (e) {
+                                        // console.log('errors', records - e.failures.length)
+                                        // Explicitely catching the bulkAdd() operation makes those successful
+                                        // additions commit despite that there were errors.
+                                        console.error('Some transactions did not succeed. ' + Number(records - e.failures.length) + ' cryptocompare hourly records added successfully for ' + symbol + '.');
+                                    });
+                                }
+                            });
+                            }
                             return Promise.resolve(null);
                         })
                     }, Promise.resolve(null))
@@ -928,7 +967,7 @@
             cryptxgang_db = new Dexie("cryptxgang_db");
             cryptxgang_db.version(1).stores({
                 settings: 'name,value',
-                data: '[freq+symbol+time+platform]',
+                data: '[freq+symbol+time+platform],symbol',
                 tokens: 'symbol',
             });
             cryptxgang_db.on('changes', function (changes) {
