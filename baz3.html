@@ -42,7 +42,7 @@
         input {
             font-size: 18px;
             padding: 13px 15px;
-            margin-bottom: 20px;
+            /* margin-bottom: 20px; */
             width: calc("100% - 30px");
             display: block;
             border-radius: 5px;
@@ -258,6 +258,30 @@
         input:focus {
             outline: none;
         }
+
+        .uname {
+            font-size: .62em;
+            text-transform: uppercase;
+        }
+
+        .time_display {
+            font-size: 2.62em
+        }
+
+        .points_display {
+            font-size: 1.62em
+        }
+
+        nav>a>svg {
+            fill: #777
+        }
+
+
+
+        nav>a:focus>svg,
+        nav>a>svg:hover {
+            fill: dodgerblue;
+        }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dexie/3.2.0-rc.2/dexie.min.js"
         integrity="sha512-hJ1eR4h0vQbaojZAlCt5mDHE255IeqdRpK4IyBnXvAYDyBYfxMu2V2CA8PLAh8DdLB6x9ei9GRs+v2dUIGIjDQ=="
@@ -268,20 +292,105 @@
 
 <body>
     <div id="app">
+        <div style="background-color: #CCC; padding: 1em; width: 322.2271896769px">
+            <nav>
+                <a href="#">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24">
+                        <path d="M11 5c-1.629 0-2.305-1.058-4-3h-7v20h24v-17h-13z" /></svg>
+                    <!-- <path style="stroke: #0ff; filter: url(#glow);" d="M11 5c-1.629 0-2.305-1.058-4-3h-7v20h24v-17h-13z" /></svg> -->
+                </a>
+                <a href="#">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24">
+                        <path
+                            d="M23.832 19.641l-6.821-6.821c2.834-5.878-1.45-12.82-8.065-12.82-4.932 0-8.946 4.014-8.946 8.947 0 6.508 6.739 10.798 12.601 8.166l6.879 6.879c1.957.164 4.52-2.326 4.352-4.351zm-14.886-4.721c-3.293 0-5.973-2.68-5.973-5.973s2.68-5.973 5.973-5.973c3.294 0 5.974 2.68 5.974 5.973s-2.68 5.973-5.974 5.973z" />
+                    </svg>
+                </a>
+                <a href="#">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24">
+                        <path
+                            d="M15 12c0 1.657-1.343 3-3 3s-3-1.343-3-3c0-.199.02-.393.057-.581 1.474.541 2.927-.882 2.405-2.371.174-.03.354-.048.538-.048 1.657 0 3 1.344 3 3zm-2.985-7c-7.569 0-12.015 6.551-12.015 6.551s4.835 7.449 12.015 7.449c7.733 0 11.985-7.449 11.985-7.449s-4.291-6.551-11.985-6.551zm-.015 12c-2.761 0-5-2.238-5-5 0-2.761 2.239-5 5-5 2.762 0 5 2.239 5 5 0 2.762-2.238 5-5 5z">
+                        </path>
+                    </svg>
+
+
+                    </svg>
+                </a>
+
+                <div
+                    style="box-shadow: 0px 0.381945005047435px 1.61821197083685px rgba(0, 0, 0, 0.25); background-color: #fefefe; border-radius: 2.61846597222792px; width: 322.2271896769px; height: 185.4101966px">
+                    <Chart :symbol="'BTC'" :dp="datapoints"
+                        :todaysprice="todaysprices['BTC']&&todaysprices['BTC'].USD.PRICE||0"></Chart>
+                </div>
+                <div style="box-shadow: 0px 0.381945005047435px 1.61821197083685px rgba(0, 0, 0, 0.25);
+                    background-color: #fefefe;
+        
+                    border-radius: 2.61846597222792px; width: 123.066297190163px; height: 76.054971663521px">
+                    <div v-for="t in ticker_symbols">
+                        {{t}}
+                    </div>
+                </div>
+                <!-- <div class="e1_2_1">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24">
+                            <path
+                                d="M15 12c0 1.657-1.343 3-3 3s-3-1.343-3-3c0-.199.02-.393.057-.581 1.474.541 2.927-.882 2.405-2.371.174-.03.354-.048.538-.048 1.657 0 3 1.344 3 3zm-2.985-7c-7.569 0-12.015 6.551-12.015 6.551s4.835 7.449 12.015 7.449c7.733 0 11.985-7.449 11.985-7.449s-4.291-6.551-11.985-6.551zm-.015 12c-2.761 0-5-2.238-5-5 0-2.761 2.239-5 5-5 2.762 0 5 2.239 5 5 0 2.762-2.238 5-5 5z">
+                            </path>
+                        </svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24">
+                            <path
+                                d="M24 13.616v-3.232l-2.869-1.02c-.198-.687-.472-1.342-.811-1.955l1.308-2.751-2.285-2.285-2.751 1.307c-.613-.339-1.269-.613-1.955-.811l-1.021-2.869h-3.232l-1.021 2.869c-.686.198-1.342.471-1.955.811l-2.751-1.308-2.285 2.285 1.308 2.752c-.339.613-.614 1.268-.811 1.955l-2.869 1.02v3.232l2.869 1.02c.197.687.472 1.342.811 1.955l-1.308 2.751 2.285 2.286 2.751-1.308c.613.339 1.269.613 1.955.811l1.021 2.869h3.232l1.021-2.869c.687-.198 1.342-.472 1.955-.811l2.751 1.308 2.285-2.286-1.308-2.751c.339-.613.613-1.268.811-1.955l2.869-1.02zm-12 2.384c-2.209 0-4-1.791-4-4s1.791-4 4-4 4 1.791 4 4-1.791 4-4 4z">
+                            </path>
+                        </svg> <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+                            <path
+                                d="M5.633 22.031c1.135 1.313 3.735 1.969 6.334 1.969 2.601 0 5.199-.656 6.335-1.969.081-.404 3.698-18.468 3.698-18.882 0-2.473-7.338-3.149-10-3.149-4.992 0-10 1.242-10 3.144 0 .406 3.556 18.488 3.633 18.887zm6.418-16.884c-4.211 0-7.625-.746-7.625-1.667s3.414-1.667 7.625-1.667 7.624.746 7.624 1.667-3.413 1.667-7.624 1.667z">
+                            </path>
+                        </svg>
+                        <svg width="24" height="24" xmlns="http://www.w3.org/2000/svg" fill-rule="evenodd" clip-rule="evenodd">
+                            <path
+                                d="M18 18h-12c-3.311 0-6-2.689-6-6s2.689-6 6-6h12.039c3.293.021 5.961 2.701 5.961 6 0 3.311-2.688 6-6 6zm-12-10c2.208 0 4 1.792 4 4s-1.792 4-4 4-4-1.792-4-4 1.792-4 4-4z">
+                            </path>
+                        </svg> <svg width="24" height="24" xmlns="http://www.w3.org/2000/svg" fill-rule="evenodd"
+                            clip-rule="evenodd">
+                            <path
+                                d="M6 18h12c3.311 0 6-2.689 6-6s-2.689-6-6-6h-12.039c-3.293.021-5.961 2.701-5.961 6 0 3.311 2.688 6 6 6zm12-10c-2.208 0-4 1.792-4 4s1.792 4 4 4 4-1.792 4-4-1.792-4-4-4z">
+        
+                            </path>
+                        </svg></div> -->
+
+
+
+            </nav>
+        </div>
+        <!-- <svg height="300" width="824">
+            <g class="svgWrapper" transform="translate(412,150)">
+                <defs>
+                    <filter id="glow">
+                        <fegaussianblur class="blur" result="coloredBlur" stddeviation="4"></fegaussianblur>
+                        <femerge>
+                            <femergenode in="coloredBlur"></femergenode>
+                  <femergenode in="coloredBlur"></femergenode>
+                  <femergenode in="coloredBlur"></femergenode>
+                            <femergenode in="SourceGraphic"></femergenode>
+                        </femerge>
+                    </filter>
+                </defs>
+             <path class="exampleGlow" d="M100,250 C100,100 400,100 400,250" style="fill-opacity: 0; stroke-width: 2; stroke: red; filter: url(#glow);" transform="translate(-250,-200)"/></path>
+            </g></svg> -->
+
 
 
         <div>
             <div style="display:flex; flex-direction: column ;align-items: center;">
-                <div style="text-align: center; width: 100%;">
+                <div class="time_display" style="text-align: center; width: 100%;">
                     <span v-if="Number(time.split(':')[0]) > 0 || Number(time.split(':')[1]) > 0">{{time}}</span>
                     <span v-else>You {{'win!'}}</span>
                 </div>
                 <div style="width: 100%;">
                     <div style="display:flex;width: 100%;justify-content: center; align-items: center;">
 
-                        <span style="text-align: right; flex: 1; padding: 0 .38em">Randomly Generated IDs
+                        <span class="uname" style="text-align: right; flex: 1; padding: 0 .62em">Randomly Generated User
+                            IDs
                         </span>
-                        <span style="flex: 1;padding: 0 .38em ">
+                        <span class="uname" style="flex: 1;padding: 0 .62em ">
                             AI
                         </span>
                     </div>
@@ -291,8 +400,12 @@
 
                         <span style=" flex: 1; ">
                             <div style="display: flex; align-items: center; justify-content: end">
-                                <span>
-                                    {{fantasy_points[1]*(fantasy_points[0].length&&Math.max(confidence_boost(1/d3.mean([1,fantasy_points[0].length]))/100, 1)||1)}} confidence boost: <span v-if="fantasy_points[0].length">+{{ confidence_boost(fantasy_points[0].length/d3.mean([1,fantasy_points[0].length])) - 100 }}%</span>
+                                <span class="points_display">
+                                    {{fantasy_points[1]*(fantasy_points[0].length&&Math.max(confidence_boost(1/d3.mean([1,fantasy_points[0].length]))/100, 1)||1)}}
+                                    confidence boost: <span
+                                        v-if="fantasy_points[0].length">+{{ confidence_boost(fantasy_points[0].length/d3.mean([1,fantasy_points[0].length])) - 100 }}%</span>
+                                    <span>
+                                    </span>
                                 </span>
                                 <svg width="62px" viewbox="0 0 16 16">
                                     <g>
@@ -316,9 +429,10 @@
                                             width="1" height="1"></rect>
                                     </g>
                                 </svg>
-                                <span>
+                                <span class="points_display">
                                     {{state.points*(todaysprices.USDT&&todaysprices.USDT.USD.PRICE||1)*Math.max(confidence_boost(1/d3.mean([1,fantasy_points[0].length]))/100,1)}}
-                                    confidence boost: <span v-if="fantasy_points[0].length">+{{ confidence_boost(1/d3.mean([1,fantasy_points[0].length])) - 100 }}%</span>
+                                    confidence boost: <span
+                                        v-if="fantasy_points[0].length">+{{ confidence_boost(1/d3.mean([1,fantasy_points[0].length])) - 100 }}%</span>
 
                                 </span>
                             </div>
@@ -334,7 +448,7 @@
 [[[204, 204, 204], [204, 204, 204], [203, 203, 203], [204, 204, 204], [204, 204, 204], [204, 204, 204], [204, 204, 204], [204, 204, 204], [204, 204, 204], [187, 187, 187], [170, 170, 170], [136, 136, 136], [136, 136, 136], [119, 119, 119], [136, 136, 136], [119, 119, 119]], [[221, 221, 221], [221, 221, 221], [221, 221, 221], [221, 221, 221], [221, 221, 221], [221, 221, 221], [221, 221, 221], [220, 220, 220], [221, 221, 221], [204, 204, 204], [136, 136, 136], [85, 85, 85], [85, 85, 85], [119, 119, 119], [136, 136, 136], [170, 170, 170]], [[221, 221, 221], [221, 221, 221], [221, 221, 221], [204, 204, 204], [204, 204, 204], [204, 204, 204], [187, 187, 187], [187, 187, 187], [204, 204, 204], [221, 221, 221], [187, 187, 187], [153, 153, 153], [85, 85, 85], [170, 170, 170], [153, 153, 153], [85, 85, 85]], [[221, 221, 221], [187, 187, 187], [85, 85, 85], [85, 85, 85], [103, 103, 103], [68, 68, 68], [51, 51, 51], [51, 51, 51], [68, 68, 68], [101, 101, 101], [153, 153, 153], [170, 170, 170], [221, 221, 221], [170, 170, 170], [85, 85, 85], [136, 136, 136]], [[204, 204, 204], [136, 136, 136], [102, 102, 102], [68, 68, 68], [51, 51, 51], [51, 51, 51], [51, 51, 51], [51, 51, 51], [51, 51, 51], [51, 51, 51], [85, 85, 85], [68, 68, 68], [85, 85, 85], [51, 51, 51], [34, 34, 34], [34, 34, 34]], [[170, 170, 170], [102, 102, 102], [119, 119, 119], [136, 136, 136], [136, 136, 136], [51, 51, 51], [51, 51, 51], [85, 85, 85], [85, 85, 85], [68, 68, 68], [51, 51, 51], [51, 51, 51], [51, 51, 51], [68, 68, 68], [85, 85, 85], [85, 85, 85]], [[102, 102, 102], [170, 170, 170], [221, 221, 221], [221, 221, 221], [136, 136, 136], [51, 51, 51], [34, 34, 34], [67, 67, 67], [136, 136, 136], [102, 102, 102], [85, 85, 85], [102, 102, 102], [68, 68, 68], [51, 51, 51], [68, 68, 68], [85, 85, 85]], [[85, 85, 85], [204, 204, 204], [238, 238, 238], [238, 238, 238], [136, 136, 136], [34, 34, 34], [51, 51, 51], [85, 85, 85], [136, 136, 136], [171, 171, 171], [170, 170, 170], [153, 153, 153], [136, 136, 136], [68, 68, 68], [51, 51, 51], [69, 69, 69]], [[102, 102, 102], [237, 239, 238], [238, 238, 238], [238, 238, 238], [136, 136, 136], [34, 34, 34], [51, 51, 51], [119, 119, 119], [135, 135, 135], [204, 204, 204], [119, 119, 119], [153, 153, 153], [187, 187, 187], [102, 102, 102], [51, 51, 51], [85, 85, 85]], [[102, 102, 102], [237, 237, 237], [239, 237, 238], [238, 238, 238], [170, 170, 170], [68, 68, 68], [187, 187, 187], [221, 221, 221], [119, 119, 119], [119, 119, 119], [119, 119, 119], [135, 135, 135], [170, 170, 170], [102, 102, 102], [51, 51, 51], [85, 85, 85]], [[153, 153, 153], [238, 238, 238], [238, 238, 238], [238, 238, 238], [170, 170, 170], [101, 52, 48], [152, 102, 101], [153, 153, 153], [102, 102, 102], [102, 102, 102], [85, 85, 85], [102, 102, 102], [102, 102, 102], [85, 85, 85], [51, 51, 51], [51, 51, 51]], [[49, 103, 103], [221, 221, 221], [238, 236, 237], [238, 238, 238], [152, 152, 152], [100, 50, 49], [153, 50, 51], [101, 51, 50], [119, 119, 119], [136, 136, 136], [102, 102, 102], [102, 102, 102], [68, 68, 68], [51, 51, 51], [34, 34, 34], [51, 51, 51]], [[102, 102, 102], [170, 170, 170], [221, 221, 221], [203, 204, 206], [203, 153, 152], [153, 50, 51], [153, 50, 51], [101, 51, 50], [85, 85, 85], [68, 68, 68], [51, 51, 51], [68, 68, 68], [51, 51, 51], [34, 34, 34], [34, 34, 34], [51, 51, 51]], [[187, 187, 187], [102, 102, 102], [153, 153, 153], [136, 136, 136], [119, 119, 119], [101, 51, 50], [101, 51, 50], [101, 51, 50], [85, 85, 85], [68, 68, 68], [51, 51, 51], [85, 85, 85], [102, 102, 102], [101, 101, 101], [51, 51, 51], [34, 34, 34]], [[221, 221, 221], [204, 204, 204], [170, 170, 170], [85, 85, 85], [68, 68, 68], [101, 51, 50], [68, 68, 68], [68, 68, 70], [85, 85, 85], [85, 85, 85], [154, 154, 154], [204, 204, 204], [238, 238, 238], [221, 221, 221], [221, 221, 221], [51, 51, 51]], [[238, 238, 238], [222, 222, 222], [221, 221, 221], [187, 187, 187], [136, 136, 136], [119, 119, 117], [136, 136, 136], [171, 169, 170], [187, 187, 187], [187, 187, 187], [204, 204, 204], [204, 204, 204], [221, 221, 221], [238, 238, 238], [187, 187, 187], [136, 136, 136]]]
 -->
         </div>
-        <div v-if="state.points_to_start">
+        <div style="display: inline-block" v-if="state.points_to_start">
             <span><span>POINTS</span><span>Fantasy Crypto Points</span></span>
             <span>{{state.points_to_start}}</span>
             <span><button :disabled="swapping=='Fantasy Crypto Points'"
@@ -348,37 +462,53 @@
             {{symbol}} My Ticker Name {{amount}}<span><button :disabled="swapping==symbol"
                     @click="swapping=from.symbol=symbol; from.amount=state[symbol]">swap</button></span>
         </div>
-        <!-- <div v-for="t in tickers">
+        <!-- <div v-for="t in ticker_symbols">
             <span><span>POINTS</span><span>Fantasy Crypto Points</span></span>
             <span>{{state.points}}</span>
             <span><button>swap</button></span>
         </div> -->
         <!-- {{plays}} -->
-        <div v-if="swapping">
-            Swap {{swapping}} for which crypto? <span v-if="to.symbol">
+        Swap {{swapping}} for which crypto?
+        {{swapping}} to
+        <div style="display: inline-block" v-if="swapping">
+            <span v-if="to.symbol">
+                <div style="position: relative; width: auto">
+                    <input disabled v-model="to.symbol" type="text" />
+
+                    <span
+                        style="text-align: right; height: 47px; width: 100%; line-height: 47px; position: absolute; top: 0; display: inline-block;">
+                        <span style="padding-right:1em" @click="to.symbol=''">CLEAR</span>
+                    </span>
+                </div>
+            </span>
+            <span v-else>
                 <div style="position: relative;">
-                    {{swapping}} to <input disabled v-model="to.symbol" type="text" />
-                    foobar
-                </div><span @click="to.symbol=''">X</span>
-            </span><input v-else v-model="searchterm" type="text" />
+                    <input v-model="searchterm" type="text" />
+                    <span v-if="searchterm" style="text-align: right; top: 47px; position: absolute;">
+                        <div style="display:flex; align-items: center; background-color: #FFF; width: auto; padding: 1em;"
+                            v-for="c in filter_cryptos.slice(0,5)" @click="to.symbol = c.RAW.USD.FROMSYMBOL;">
+                            {{c.CoinInfo.FullName}}</div>
+                    </span>
+                </div>
+            </span>
             How much crypto? <input :max="Number(from.amount)" v-model="from.amount" type="number">
 
             <span><button @click="swap(to);">Make The Swap</button></span>
-            <div style="position: absolute">
-                <div style="display:flex; align-items: center; background-color: #FFF; width: 200px;"
-                    v-for="c in filter_cryptos" @click="to.symbol = c.RAW.USD.FROMSYMBOL;">
-                    <div>
-                        <span style="font-size: 1.62em; display:inline-block">{{c.RAW.USD.FROMSYMBOL}}</span><br>
-                        <span style="font-size: 0.8em; display:inline-block">{{c.CoinInfo.FullName}}</span>
-                    </div>
-
-
+            <!-- <div style="position: absolute">
+                <div style="display:flex; align-items: center; background-color: #FFF; width: auto; padding: 1em;"
+                    v-for="c in filter_cryptos.slice(0,5)" @click="to.symbol = c.RAW.USD.FROMSYMBOL;">
+                    
                     <img width="48" :src="'https://cryptocompare.com/'+c.CoinInfo.ImageUrl" alt="">
+                        <div>
+                            <span style="font-size: 1.62em; display:inline-block">{{c.RAW.USD.FROMSYMBOL}}</span><br>
+                            <span style="font-size: 0.8em; display:inline-block">{{c.CoinInfo.FullName}}</span>
+                        </div>
+    
                 </div>
-            </div>
+            </div> -->
 
-            {{tickers}}
-            {{cryptocompare_prices}}
+            <!-- {{ticker_symbols}}
+            {{cryptocompare_prices}} -->
         </div>
     </div>
 </body>
@@ -403,6 +533,27 @@
     }
 
 
+    // const Chart = {
+    //     props: [],
+    //     data: function () {
+    //         let margin = { top: 0, bottom: 0, left: 0, right: 0 },
+    //         padding = { between_candles: 2 },
+    //         candle = { width: 3, up: "green", down: "red" },
+    //         wick = { width: 1 },
+    //         dp = [1, 2, 3],
+    //         chart = {};
+    //         chart.width = (dp.length * candle.width) + padding.between_candles * (dp.length - 1) + margin.left + margin.right;
+    //         // chart.height = margin.top + margin.bottom;
+
+    //         return {
+    //             chart
+    //         }
+    //     },
+    //     template: `<div>
+
+    //     <div>`
+    // };
+
 
     async function _heartbeat(func, wait_time = 15000) {
         if (!func) return 0;
@@ -414,6 +565,140 @@
     };
     const colors = ['orange', 'blue', 'indigo', 'violet', 'cyan', 'magenta', 'yellow', 'black']
     const app = new Vue({
+        components: {
+            Chart: {
+                props: ['symbol', 'dp', 'todaysprice'],
+                async mounted() {
+                    this.loading = 0;
+                },
+                computed: {
+                    data() {
+                        return this.dp.filter(e => e.symbol === this.symbol)
+                    },
+                    freq() {
+                        console.log(this.dp)
+                        return this.data.filter(e => e.freq === this.chart_freq).slice(this.max_datapoints_to_display * -1)
+                    },
+                    xscale() {
+                        // return d3.scaleTime().domain(d3.extent(this.freq.slice(0, this.max_datapoints_to_display).map(e=>new Date(e.time*1000)))).range([0,100-7.5]).nice()
+                        return d3.scaleLinear().domain(d3.extent(this.freq.slice(0, this.max_datapoints_to_display).map(e => e.time))).range([0 + this.margin.left, 322.2271896769 - this.margin.right]).nice()
+                    },
+                    yscale() {
+                        return d3.scaleLinear().domain([Math.min(...this.freq.map(e => e.low)), Math.max(...this.freq.map(e => e.high))]).range([185.4101966 - this.margin.bottom, 0 + this.margin.top]).nice()
+                    },
+                    chart_width() {
+                        return (this.candle.width * this.freq.slice(0, this.max_datapoints_to_display).length) + this.padding.between_candles * (this.freq.slice(0, this.max_datapoints_to_display).length - 1) + this.margin.left + this.margin.right
+                        // return this.dp.length
+                    }
+                },
+                data: function () {
+                    let w = 100, h = 62, margin = { top: 38, bottom: 50, left: 20, right: 38 },
+                        padding = { between_candles: 2 },
+                        candle = { wick: { width: 1 }, width: 1.8, up: "green", down: "red" },
+                        dp = [1, 2, 3],
+                        chart = {};
+                    // chart.width = (dp.length * candle.width) + margin.left + margin.right;
+                    // chart.width = (dp.length * candle.width) + padding.between_candles * (dp.length - 1) + margin.left + margin.right;
+                    // chart.height = margin.top + margin.bottom;
+
+                    return {
+                        max_datapoints_to_display: 100,
+                        margin,
+                        candle,
+                        padding,
+                        loading: 1,
+                        chart,
+                        chart_freq: 60,
+                        Xscale: '',
+                        Yscale: ''
+                    }
+                },
+                template: `<div style="font-family: 'Roboto Condensed';position: relative">
+    <div style="position: absolute;top: -5px; left: 5px; z-index: 1; opacity: .8">
+        <div style="display:flex; align-items: center" v-for="scope in [$parent.todaysprices&&$parent.todaysprices[symbol]&&$parent.todaysprices[symbol].USD]" v-if="$parent.cryptos_asobj&&$parent.cryptos_asobj[symbol]">
+            <img width="48" :src="'https://cryptocompare.com/'+$parent.cryptos_asobj[symbol].CoinInfo.ImageUrl" alt="">
+            <span style="font-family:'Roboto Condensed';margin-top:.38em; display:flex; flex-direction: column">
+                <span style="font-weight: 900; font-size:1.62em">
+                    {{$parent.cryptos_asobj&&$parent.cryptos_asobj[symbol]&&$parent.cryptos_asobj[symbol].CoinInfo.Name}}&nbsp;\${{scope.PRICE}}
+                    <span style="    color: #BBB; text-align: center; letter-spacing: 0; font-weight: 900; text-rendering: optimizeLegibility; font-size: 8px; font-family: 'Roboto';">
+                        MIN HOU DAY MONTH
+                    </span>
+                </span>
+                <span style="color: black; position: relative; top:-.38em;">
+                    <span style="font-size:.8em; margin-left:-.09em;">{{$parent.cryptos_asobj&&$parent.cryptos_asobj[symbol]&&$parent.cryptos_asobj[symbol].CoinInfo.FullName}}</span>
+                    <span style="font-size:.5em; background: linear-gradient(rgba(255,255,255,.09), rgba(255,255,255,.38), rgba(255,255,255,.09))">
+                        <span style="color: #444; font-weight: 600">LASTHR</span><svg :style="Math.round((scope.CHANGEPCTHOUR + Number.EPSILON) * 100) / 100>0?'transform: rotate(270deg);fill: #61FE61':'transform: rotate(90deg);fill: #FF6464'" xmlns="http://www.w3.org/2000/svg" width="9" height="9" viewBox="0 0 24 24">
+                            <path d="M24 12l-12-9v5h-12v8h12v5l12-9z" />
+                        </svg>{{Math.round((scope.CHANGEPCT24HOUR + Number.EPSILON) * 100) / 100}}%
+                        <span style="color: #444; font-weight: 600">LAST24</span><svg :style="Math.round((scope.CHANGEPCT24HOUR + Number.EPSILON) * 100) / 100>0?'transform: rotate(270deg);fill: #61FE61':'transform: rotate(90deg);fill: #FF6464'" xmlns="http://www.w3.org/2000/svg" width="9" height="9" viewBox="0 0 24 24">
+                            <path d="M24 12l-12-9v5h-12v8h12v5l12-9z" />
+                        </svg>{{Math.round((scope.CHANGEPCT24HOUR + Number.EPSILON) * 100) / 100}}%
+                        <span style="color: #444; font-weight: 600">TODAY</span><svg :style="Math.round((scope.CHANGEPCT24HOUR + Number.EPSILON) * 100) / 100>0?'transform: rotate(270deg);fill: #61FE61':'transform: rotate(90deg);fill: #FF6464'" xmlns="http://www.w3.org/2000/svg" width="9" height="9" viewBox="0 0 24 24">
+                            <path d="M24 12l-12-9v5h-12v8h12v5l12-9z" />
+                        </svg>{{Math.round((scope.CHANGEPCTDAY + Number.EPSILON) * 100) / 100}}%
+                        </span>
+                </span>
+            </span>
+        </div>
+    </div>
+    <div v-if="loading"
+        style="left: calc(50% - 25px); top: calc(calc(185.4101966px / 2) - 25px); position: absolute; display:inline-block; width: 50px; height: 50px">
+        <svg version="1.1" id="L9" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="50%"
+            y="50%" viewBox="0 0 100 100" enable-background="new 0 0 0 0" xml:space="preserve">
+            <path fill="dodgerblue"
+                d="M73,50c0-12.7-10.3-23-23-23S27,37.3,27,50 M30.9,50c0-10.5,8.5-19.1,19.1-19.1S69.1,39.5,69.1,50">
+                <animateTransform attributeName="transform" attributeType="XML" type="rotate" dur="1s" from="0 50 50"
+                    to="360 50 50" repeatCount="indefinite"></animateTransform>
+            </path>
+        </svg>
+    </div>
+    <div v-else style="position: absolute; height: 185.4101966px">
+        <svg style="width:322.2271896769px" :viewBox="\`0 0 ${322.2271896769} 185.4101966\`"
+            xmlns="http://www.w3.org/2000/svg">
+            <!-- RULES -->
+            <line stroke="#EEE" stroke-width="1" v-for="x in xscale.ticks().slice(1).slice(0,-1)" :x1="xscale(x)"
+                :x2="xscale(x)" :y1="yscale(yscale.domain()[1])" :y2="yscale(yscale.domain()[0])" />
+            <!-- PRICES -->
+            <line stroke="dodgerblue" stroke-width="1" stroke-dasharray="4" :x1="0" :x2="322.2271896769"
+                :y1="yscale(todaysprice)" :y2="yscale(todaysprice)" />
+            <rect style="shape-rendering:crispEdges" :y="yscale(y)-6" :x='xscale(xscale.domain()[1])'
+                v-for="y in yscale.domain()" :width='322.2271896769-9' :height='12'></rect>
+            <text dominant-baseline="middle" fill="white" text-anchor="middle" style="font-weight:600;font-size:.5em"
+                :y="yscale(y)+1" v-for="y in yscale.domain()" :x="xscale(xscale.domain()[1])+20">{{y}}</text>
+
+            <g>
+                <rect fill="dodgerblue" style="shape-rendering:crispEdges" :y="yscale(todaysprice)-6"
+                    :x='xscale(xscale.domain()[1])' :width='322.2271896769-9' :height='12'></rect>
+                <text dominant-baseline="middle" fill="white" text-anchor="middle"
+                    style="font-weight:600;font-size:.5em" :y="yscale(todaysprice)+1"
+                    :x="xscale(xscale.domain()[1])+20">{{todaysprice}}</text>
+            </g>
+
+            <!-- CANDLES -->
+            <g :fill="yscale(dp.open)-yscale(dp.close)<0?candle.up:candle.down"
+                v-for="dp, i in freq.slice(0,max_datapoints_to_display)">
+                <!-- WICK -->
+                <rect style="shape-rendering:crispEdges" :y="yscale(dp.high)" :x='xscale(dp.time)-(candle.wick.width/2)'
+                    :width='candle.wick.width'
+                    :height='(Math.round(((yscale(dp.low)-yscale(dp.high)) + Number.EPSILON) * 100) / 100)'></rect>
+                <!-- BODY -->
+                <rect style="shape-rendering:crispEdges" :y="Math.max(yscale(dp.open),yscale(dp.close))"
+                    :x='xscale(dp.time)-(candle.width/2)' :width='candle.width'
+                    :height='(Math.round((Math.abs(yscale(dp.open)-yscale(dp.close)) + Number.EPSILON) * 100) / 100)'>
+                </rect>
+            </g>
+            <!-- X-Labels -->
+            <text text-anchor="middle" style="font-size:.5em" :x="xscale(x)"
+                v-for="x in xscale.ticks().slice(1).slice(0,-1)"
+                :y="yscale(yscale.domain()[0])+(margin.bottom/2.5)">{{new Date(x*1000).getHours()}}:{{new Date(x*1000).getMinutes().toString().padStart(2, '0')}}</text>
+            <text text-anchor="middle" style="fill: #333;font-weight: 900;font-size:.5em" x="50%"
+                :y="yscale(yscale.domain()[0])+(margin.bottom/1.25)">{{xscale.domain().map(e=>new Date(e*1000).toLocaleString('en-US')).join(' - ')}}</text>
+            <!-- -->
+        </svg>
+    </div>
+</div>`
+            }
+        },
         computed: {
             state() {
                 let points, points_to_start = 1000;
@@ -431,13 +716,18 @@
                 // console.log(Object.entries(_state))
                 return _state
             },
+            cryptos_asobj() {
+                console.log()
+                return Object.fromEntries(Array.from(this.cryptos).map(e => [e.symbol, e]))// ? [] : Object.fromEntries(this.cryptos.map(e => [e.CoinInfo.Name, e]))
+            },
             filter_cryptos() {
                 // return Object.values(this.cryptos).filter(e => e.symbol.toLowerCase().includes(this.searchterm.toLowerCase())).slice(0, 20)
-                return Object.values(this.cryptos).filter(e => e.RAW && e.RAW.USD && e.RAW.USD.FROMSYMBOL.toLowerCase().includes(this.searchterm.toLowerCase())).slice(0, 20)
+                return Object.values(this.cryptos).filter(e => e.RAW && e.RAW.USD && e.RAW.USD.FROMSYMBOL.toLowerCase().includes(this.searchterm.toLowerCase()) || e.CoinInfo.FullName.toLowerCase().includes(this.searchterm.toLowerCase())).slice(0, 20)
             },
-            tickers() {
+            ticker_symbols() {
                 let foo = this.fantasy_points[0].map(e => e[0]);
-                return foo.concat(['USDT'])
+                // console.log(this.internal_ticker_symbols)
+                return Array.from(new Set(foo.concat(this.internal_ticker_symbols.length && this.internal_ticker_symbols || this.default.ticker_symbols)));
             },
             fantasy_points() {
                 let foo = Object.entries(this.state).filter(e => e[0].slice(0, 6) != 'points');
@@ -458,7 +748,7 @@
         el: "#app",
         data: {
             confidence_boost: (function (samples = [0.5, 1], range = [102, 100]) {
-            // confidence_boost: (function (samples = [1, 3], range = [102, 100]) {
+                // confidence_boost: (function (samples = [1, 3], range = [102, 100]) {
                 return this.d3.scaleLinear().domain(samples.map(sample => sample / d3.mean(samples))).range(range)
                 // return d3.scaleLinear().domain(samples.map(sample => sample / d3.deviation(samples))).range(range)
             }()),
@@ -487,10 +777,50 @@
             getRandomInt,
             random_id: (function () { return Array(256).fill(null).map(e => getRandomInt(255)) }()),
             my_random_id,
-            d3
+            d3,
+
+            default: {
+                ticker_symbols: ['BTC', 'ETH']
+            },
+            internal_ticker_symbols: [],
+            datapoints: []
+
+
 
         },
         methods: {
+            // cryptocompare_OHLCV(symbol, freq = 60) {
+            //     return (function () {
+            //         let _last = 0, ready = () => console.log({_last, ready, now: Date.now()}) || !_last || _last * 1000 >= Date.now() - 60 * 1000,
+            //             fetch_data = function (symbol, freq) {
+            //                 let foo;
+
+            //                 if(!ready())return null;
+            //                 switch (freq) {
+            //                     case 60:
+            //                         // TODO: use object's date as last date
+            //                         foo = fetch(`https://min-api.cryptocompare.com/data/v2/histominute?fsym=${symbol}&tsym=USD&limit=300`).then(e => e.json()).catch(console.log.bind(console)).then(e => _last = e.Data.TimeTo*1000 && e.Data.Data);
+            //                         break;
+            //                     default:
+            //                         foo = new Error()
+            //                 };
+            //                 return foo;
+            //             };
+            //             return { ready, fetch_data  }
+            //     }());
+
+            //     // return 
+            // },
+            // // async get_cryptocompare_OHLCV(symbol, freq = 60) {
+            // //     switch (freq) {
+            // //         case 60:
+            // //             return fetch(`https://min-api.cryptocompare.com/data/v2/histominute?fsym=${symbol}&tsym=USD&limit=300`).catch(console.log.bind(console)).then(e => e.json()).then(e => e.Data.Data);
+            // //             break;
+            // //         default:
+            // //             return new Error()
+            // //     }
+            // //     // return 
+            // // },
             swap(to, from) {
                 console.log('foo')
                 from = from || this.from;
@@ -501,7 +831,7 @@
                 console.log(!to, !to.symbol, !from.amount, from.amount > this.state[from.symbol], this.state.points_to_start);
                 if (!to || !to.symbol || !from.amount || from.amount > (this.state[from.symbol] || this.state.points_to_start)) return alert('Not enough funds.');
                 // fetch(`https://min-api.cryptocompare.com/data/v2/histominute?fsym=${from.symbol||'USD'}&tsym=${to.symbol}&limit=1`).then(e => e.json()).then(e => (console.log(e.Data)))
-                fetch(`https://min-api.cryptocompare.com/data/v2/histominute?fsym=${from.symbol || 'USD'}&tsym=${to.symbol}&limit=1`).then(e => e.json()).then(e => (console.log(e.Data.Data[0], from.amount, e.Data.Data[0].close * from.amount) || console.log(this.plays.push([{ [from.symbol || 'points_to_start']: -1 * from.amount, [to.symbol]: e.Data.Data[0].close * from.amount }]))))
+                fetch(`https://min-api.cryptocompare.com/data/v2/histominute?fsym=${from.symbol || 'USD'}&tsym=${to.symbol}&limit=1`).then(e => e.json()).then(e => (this.plays.push([{ [from.symbol || 'points_to_start']: -1 * from.amount, [to.symbol]: e.Data.Data[0].close * from.amount }])))
                 this.swapping = 0
                 // this.to.amount = 0;
                 // this.to.symbol = ''
@@ -517,19 +847,121 @@
                 if (this.end - now <= 0) this.gameover = 1
             },
             async get_price_from_cryptocompare() {
+                if (this.gameover) return
                 // if (!this.c_price) return console.log('Price data not in sync.');
-                console.log(this.tickers)
-                if (this.tickers.length) {
+                // console.log(this.ticker_symbols)
+                if (this.ticker_symbols.length) {
 
-                    let foo = await get_cryptocompare_prices(this.tickers);//.then(e => );
+                    let foo = await get_cryptocompare_prices(this.ticker_symbols);//.then(e => );
+                    let records = 0;
+                    this.ticker_symbols.reduce((a, symbol) => {
+                        return a.then(async () => {
+                            await get_minutely_from_cryptocompare(symbol).then(async datapoints => {
+                                if (records = datapoints.length) {
+                                    await cryptxgang_db.data.bulkAdd(datapoints.map(g => ({ ...g, symbol, freq: 60, platform: 'cryptocompare' }))).then(function (lastKey) {
+                                        console.log(datapoints.length + ' cryptocompare minutely records added for ' + symbol + '.')
+                                        // console.log("Done adding 100,000 raindrops all over the place");
+                                        console.log("Last datapoint id was: " + lastKey); // Will be 100000.
+                                    }).catch(Dexie.BulkError, function (e) {
+                                        // console.log('errors', records - e.failures.length)
+                                        // Explicitely catching the bulkAdd() operation makes those successful
+                                        // additions commit despite that there were errors.
+                                        console.error('Some transactions did not succeed. ' + Number(records - e.failures.length) + ' cryptocompare minutely records added successfully for ' + symbol + '.');
+                                    });
+                                }
+                            });
+                            return Promise.resolve(null);
+                        })
+                    }, Promise.resolve(null))
+                    // this.get_cryptocompare_OHLCV()
                     if (foo.Response === 'Error') return alert(foo.Message);
                     console.log('getting prices from cryptcompare...');
                     this.cryptocompare_prices = Object.entries(foo.RAW);
                 }
             }
         },
-        mounted() {
-            fetch('https://min-api.cryptocompare.com/data/top/totaltoptiervolfull?limit=100&tsym=USD').then(e => e.json()).then(e => (console.log(this.cryptos = e.Data)))
+        async mounted() {
+            console.log('foo')
+            cryptxgang_db = new Dexie("cryptxgang_db");
+            cryptxgang_db.version(1).stores({
+                settings: 'name,value',
+                data: '[freq+symbol+time+platform]',
+                tokens: 'symbol',
+            });
+            cryptxgang_db.on('changes', function (changes) {
+                changes.forEach(function (change) {
+                    switch (change.type) {
+                        case 1: // CREATED
+                            console.log('An object was created: ' + JSON.stringify(change.obj));
+                            Promise.all(app.ticker_symbols.map(async e => await cryptxgang_db.data.where('symbol').equals(e).toArray())).then(datapoints => app.datapoints = [].concat(...datapoints))
+                            break;
+                        case 2: // UPDATED
+                            if (change.key === "tickers") app.internal_ticker_symbols = change.mods;
+                            console.log('An object with key ' + change.key + ' was updated with modifications: ' + JSON.stringify(change.mods));
+                            Promise.all(app.ticker_symbols.map(async e => await cryptxgang_db.data.where('symbol').equals(e).toArray())).then(datapoints => app.datapoints = [].concat(...datapoints))
+                            break;
+                        case 3: // DELETED
+                            console.log('An object was deleted: ' + JSON.stringify(change.oldObj));
+                            Promise.all(app.ticker_symbols.map(async e => await cryptxgang_db.data.where('symbol').equals(e).toArray())).then(datapoints => app.datapoints = [].concat(...datapoints))
+                            break;
+                        default:
+                            break;
+                    }
+                });
+            });
+            new Promise(async function (resolve, reject) {
+                await cryptxgang_db.settings.get('tickers').then(async e => {
+                    if (e && e.value) return resolve(e.value);
+                    e = app.default.ticker_symbols;
+                    await cryptxgang_db.settings.put({ name: "tickers", value: e }).then(f => resolve(e))
+                })
+            })
+                .then(async function (value) {
+                    console.log(value)
+                    app.internal_ticker_symbols = value;
+                    let h = {};
+                    // let foobar = await Promise.all(app.ticker_symbols.map(async e => await cryptxgang_db.data.where('freq').equals(60).and(dp => dp.symbol === e).toArray()))
+
+                    let foobar = await Promise.all(app.ticker_symbols.map(async e => await cryptxgang_db.data.where('symbol').equals(e).toArray()))
+                    // Promise.all(app.ticker_symbols.map(async e => await cryptxgang_db.data.where('symbol').equals(e).toArray())).then(e => console.log(e))
+                    console.log(app.datapoints = [].concat(...foobar));
+                    return
+
+
+
+                    _heartbeat(app.get_price_from_cryptocompare, 20000);
+                    _heartbeat(app.get_minutely_from_cryptocompare, 45000);
+
+                }).catch(function (error) {
+                    //
+                    // Finally don't forget to catch any error
+                    // that could have happened anywhere in the
+                    // code blocks above.
+                    //
+                    alert("Ooops: " + error);
+                });
+            await new Promise(async function (resolve, reject) {
+                // cryptxgang_db.cryptos.toArray().then(e => console.log('bar'))
+                await cryptxgang_db.tokens.toArray().then(async e => {
+                    // console.log(e.length)
+                    if (e.length) return e;
+                    // if (e && e.value) return resolve(e.value);
+                    // e = this.default.ticker_symbols;
+                    // await cryptxgang_db.settings.put({ name: "tickers", value: e }).then(f => resolve(e))
+                    let foo = await fetch('https://min-api.cryptocompare.com/data/top/totaltoptiervolfull?limit=100&tsym=USD').then(f => f.json())//.then(e => (console.log(this.cryptos = e.Data))).then(e=>e);
+                    //TODO: check list for new cryptos
+                    // console.log(foo.Data)
+                    // console.log(foo.Data.map(e=>e.RAW&&e.RAW.USD.FROMSYMBOL))
+                    // foo.Data.forEach(f => console.log())
+                    // Promise.all(foo.Data.map(f => cryptxgang_db.cryptos.put(Object.assign({},f)))).then(f => console.log(foo.Data.length + " cryptos added.")).catch(console.log.bind(console));
+                    Promise.all(foo.Data.map(f => cryptxgang_db.tokens.put({ symbol: f.RAW && f.RAW.USD.FROMSYMBOL || '', ...f }))).then(f => console.log(foo.Data.length + " cryptos added.")).catch(console.log.bind(console));
+                    // Promise.all(foo.Data.map(f => cryptxgang_db.cryptos.put(JSON.parse(JSON.stringify(f))))).then(f => console.log(foo.Data.length + " cryptos added.")).catch(console.log.bind(console));
+                    return foo.Data;
+                }).then(e => resolve(e))
+            })
+                .then(cryptos => this.cryptos = cryptos)
+                // .then(cryptos => console.log(this.cryptos))
+                .catch(console.log.bind(console))
             // fetch('https://min-api.cryptocompare.com/data/blockchain/list?api_key=583932a385edf4530535beb8494248479013f3b340bd5e52368f84b29e227492').then(e => e.json()).then(e => (console.log(this.cryptos = e.Data)))
             console.log("Game started at: " + new Date(this.start))
             _heartbeat(this.get_price_from_cryptocompare, 10000);
@@ -537,8 +969,34 @@
 
             // console.log("Penalty time starts at: " + new Date(this.start + this.EoG * 60 * 1000))
 
+
+
         }
     });
+
+    function get_cryptocompare_minutely(symbol) {
+        console.log('getting minutely data for ' + symbol + ' from cryptocompare...')
+        return fetch(`https://min-api.cryptocompare.com/data/v2/histominute?fsym=${symbol}&tsym=USD&limit=299`).then(e => e.json()).then(e => e.Data)
+    }
+
+    const get_minutely_from_cryptocompare = (function () {
+        let TimeTo = {}, When = 0;
+        return async function (symbol) {
+            // console.log({symbol})
+            let Now = Math.round(Date.now() / 1000 + Number.EPSILON), Then = (TimeTo[symbol] || (TimeTo[symbol] = 0)) + 60;
+            // console.log([Now,When,Then,When < Then , Now >= Then])
+            if (When >= Then || Now >= Then) {
+                let foo = await cryptxgang_db.data.where('symbol').equals(symbol).and(dp => dp.freq === 60 && Now < dp.time + 60),
+                    bar = await foo.keys().length;
+                if (!bar) {
+                    let baz = await get_cryptocompare_minutely(symbol);
+                    console.log({ When: (When = Now), TimeTo: (TimeTo[symbol] = baz.TimeTo) })
+                    return Promise.resolve(baz.Data);
+                }
+            };
+            return Promise.resolve([]);
+        }
+    }())
 
 </script>
 
