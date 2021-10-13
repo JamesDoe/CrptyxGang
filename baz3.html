@@ -318,16 +318,18 @@
 
                 <div
                     style="box-shadow: 0px 0.381945005047435px 1.61821197083685px rgba(0, 0, 0, 0.25); background-color: #fefefe; border-radius: 2.61846597222792px; width: 322.2271896769px; height: 185.4101966px">
-                    <Chart :symbol="'BTC'" :dp="datapoints"
+                    <Chart :symbol="'BTC'" :chartsymbol="'BTC'" :dp="datapoints"
                         :todaysprice="todaysprices['BTC']&&todaysprices['BTC'].USD.PRICE||0"></Chart>
                 </div>
                 <div style="box-shadow: 0px 0.381945005047435px 1.61821197083685px rgba(0, 0, 0, 0.25);
                     background-color: #fefefe;
         
                     border-radius: 2.61846597222792px; width: 123.066297190163px; height: 76.054971663521px">
-                    <div v-for="t in ticker_symbols">
-                        {{t}}
-                    </div>
+                   <div style='font-family: "Roboto Condensed"; color: black; font-size: 0.8em;'>
+                        Get minutely data
+                        Get hourly data
+                        Get daily data
+                    </div> 
                 </div>
                 <!-- <div class="e1_2_1">
                         <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24">
@@ -526,7 +528,7 @@
 
 
     function get_cryptocompare_prices(array) {
-        console.log(array)
+        // console.log(array)
         // return fetch(`https://min-api.cryptocompare.com/data/pricemultifull?fsyms=${array.join(',')}&tsyms=USD}`).then(e => e.json()).then(e => e)
         return fetch(`https://min-api.cryptocompare.com/data/pricemultifull?fsyms=${array.join(',')}&tsyms=USD`).then(e => e.json()).then(e => e)
 
@@ -567,21 +569,21 @@
     const app = new Vue({
         components: {
             Chart: {
-                props: ['symbol', 'dp', 'todaysprice'],
+                props: ['symbol'],
                 async mounted() {
                     this.loading = 0;
                 },
                 computed: {
                     data() {
-                        return this.dp.filter(e => e.symbol === this.symbol)
+                        return this.$parent.datapoints&&this.$parent.datapoints.filter(e => e.symbol === this.chartsymbol)
                     },
                     freq() {
-                        console.log(this.dp)
+                        // console.log(this.dp)
                         return this.data.filter(e => e.freq === this.chart_freq).slice(this.max_datapoints_to_display * -1)
                     },
                     xscale() {
                         // return d3.scaleTime().domain(d3.extent(this.freq.slice(0, this.max_datapoints_to_display).map(e=>new Date(e.time*1000)))).range([0,100-7.5]).nice()
-                        return d3.scaleLinear().domain(d3.extent(this.freq.slice(0, this.max_datapoints_to_display).map(e => e.time))).range([0 + this.margin.left, 322.2271896769 - this.margin.right]).nice()
+                        return d3.scaleLinear().domain(d3.extent(this.freq.map(e => e.time))).range([0 + this.margin.left, 322.2271896769 - this.margin.right]).nice()
                     },
                     yscale() {
                         return d3.scaleLinear().domain([Math.min(...this.freq.map(e => e.low)), Math.max(...this.freq.map(e => e.high))]).range([185.4101966 - this.margin.bottom, 0 + this.margin.top]).nice()
@@ -589,12 +591,15 @@
                     chart_width() {
                         return (this.candle.width * this.freq.slice(0, this.max_datapoints_to_display).length) + this.padding.between_candles * (this.freq.slice(0, this.max_datapoints_to_display).length - 1) + this.margin.left + this.margin.right
                         // return this.dp.length
+                    },
+                    todaysprice() {
+                        return this.$parent.todaysprices&&this.$parent.todaysprices[this.chartsymbol]&&this.$parent.todaysprices[this.chartsymbol].USD&&this.$parent.todaysprices[this.chartsymbol].USD.PRICE || ''
                     }
                 },
                 data: function () {
-                    let w = 100, h = 62, margin = { top: 38, bottom: 50, left: 20, right: 38 },
+                    let w = 100, h = 62, margin = { top: 50, bottom: 38, left: 14, right: 38 },
                         padding = { between_candles: 2 },
-                        candle = { wick: { width: 1 }, width: 1.8, up: "green", down: "red" },
+                        candle = { wick: { width: 1 }, width: 2, up: "green", down: "red" },
                         dp = [1, 2, 3],
                         chart = {};
                     // chart.width = (dp.length * candle.width) + margin.left + margin.right;
@@ -610,22 +615,26 @@
                         chart,
                         chart_freq: 60,
                         Xscale: '',
-                        Yscale: ''
+                        Yscale: '',
+                        console,
+                        chartsymbol: this.symbol
                     }
                 },
                 template: `<div style="font-family: 'Roboto Condensed';position: relative">
-    <div style="position: absolute;top: -5px; left: 5px; z-index: 1; opacity: .8">
-        <div style="display:flex; align-items: center" v-for="scope in [$parent.todaysprices&&$parent.todaysprices[symbol]&&$parent.todaysprices[symbol].USD]" v-if="$parent.cryptos_asobj&&$parent.cryptos_asobj[symbol]">
-            <img width="48" :src="'https://cryptocompare.com/'+$parent.cryptos_asobj[symbol].CoinInfo.ImageUrl" alt="">
-            <span style="font-family:'Roboto Condensed';margin-top:.38em; display:flex; flex-direction: column">
+                    
+                    
+    <div style="position: absolute;top: -5px; z-index: 1; opacity: .8">
+        <div style="display:flex; align-items: center" v-for="scope in [$parent.todaysprices&&$parent.todaysprices[chartsymbol]&&$parent.todaysprices[chartsymbol].USD]" v-if="$parent.cryptos_asobj&&$parent.cryptos_asobj[chartsymbol]">
+            <img width="48" :src="'https://cryptocompare.com/'+$parent.cryptos_asobj[chartsymbol].CoinInfo.ImageUrl" alt="">
+            <span style="font-family:'Roboto Condensed';margin-top:.5em; display:flex; flex-direction: column">
                 <span style="font-weight: 900; font-size:1.62em">
-                    {{$parent.cryptos_asobj&&$parent.cryptos_asobj[symbol]&&$parent.cryptos_asobj[symbol].CoinInfo.Name}}&nbsp;\${{scope.PRICE}}
-                    <span style="    color: #BBB; text-align: center; letter-spacing: 0; font-weight: 900; text-rendering: optimizeLegibility; font-size: 8px; font-family: 'Roboto';">
-                        MIN HOU DAY MONTH
+                    {{$parent.cryptos_asobj&&$parent.cryptos_asobj[chartsymbol]&&$parent.cryptos_asobj[chartsymbol].CoinInfo.Name}}&nbsp;<span style="font-size:.8em;">\${{scope.PRICE}}</span>
+                    <span @click="chart_freq=f[1]" v-if="data.filter(e => e.freq === f[1]).length" v-for="f in [['MIN',60],['HOU',360],['DAY',24],['MONTH',30]]" :style="\`color: \${chart_freq!==f[1]?'#BBB':'dodgerblue'}; text-align: center; letter-spacing: 0; font-weight: 900; text-rendering: optimizeLegibility; font-size: 8px; font-family: 'Roboto';\`">
+                        {{f[0]}}
                     </span>
                 </span>
                 <span style="color: black; position: relative; top:-.38em;">
-                    <span style="font-size:.8em; margin-left:-.09em;">{{$parent.cryptos_asobj&&$parent.cryptos_asobj[symbol]&&$parent.cryptos_asobj[symbol].CoinInfo.FullName}}</span>
+                    <span style="font-size:.8em;">{{$parent.cryptos_asobj&&$parent.cryptos_asobj[chartsymbol]&&$parent.cryptos_asobj[chartsymbol].CoinInfo.FullName}}</span>
                     <span style="font-size:.5em; background: linear-gradient(rgba(255,255,255,.09), rgba(255,255,255,.38), rgba(255,255,255,.09))">
                         <span style="color: #444; font-weight: 600">LASTHR</span><svg :style="Math.round((scope.CHANGEPCTHOUR + Number.EPSILON) * 100) / 100>0?'transform: rotate(270deg);fill: #61FE61':'transform: rotate(90deg);fill: #FF6464'" xmlns="http://www.w3.org/2000/svg" width="9" height="9" viewBox="0 0 24 24">
                             <path d="M24 12l-12-9v5h-12v8h12v5l12-9z" />
@@ -676,7 +685,7 @@
 
             <!-- CANDLES -->
             <g :fill="yscale(dp.open)-yscale(dp.close)<0?candle.up:candle.down"
-                v-for="dp, i in freq.slice(0,max_datapoints_to_display)">
+                v-for="dp, i in freq">
                 <!-- WICK -->
                 <rect style="shape-rendering:crispEdges" :y="yscale(dp.high)" :x='xscale(dp.time)-(candle.wick.width/2)'
                     :width='candle.wick.width'
@@ -690,11 +699,19 @@
             <!-- X-Labels -->
             <text text-anchor="middle" style="font-size:.5em" :x="xscale(x)"
                 v-for="x in xscale.ticks().slice(1).slice(0,-1)"
-                :y="yscale(yscale.domain()[0])+(margin.bottom/2.5)">{{new Date(x*1000).getHours()}}:{{new Date(x*1000).getMinutes().toString().padStart(2, '0')}}</text>
+                :y="yscale(yscale.domain()[0])+(margin.bottom/1.62)">{{new Date(x*1000).getHours()}}:{{new Date(x*1000).getMinutes().toString().padStart(2, '0')}}</text>
             <text text-anchor="middle" style="fill: #333;font-weight: 900;font-size:.5em" x="50%"
-                :y="yscale(yscale.domain()[0])+(margin.bottom/1.25)">{{xscale.domain().map(e=>new Date(e*1000).toLocaleString('en-US')).join(' - ')}}</text>
+                :y="yscale(yscale.domain()[0])+(margin.bottom/1.2)">{{xscale.domain().map(e=>new Date(e*1000).toLocaleString('en-US')).join(' - ')}}</text>
             <!-- -->
         </svg>
+        <div style="display:flex; gap: 6px;align-items: center; position: absolute; top: 1px; right: 6px; z-index: 1; opacity: .8" >
+                    <svg @click="chartsymbol=$parent.ticker_symbols[$parent.ticker_symbols.indexOf(chartsymbol)+1===$parent.ticker_symbols.length?0:$parent.ticker_symbols.indexOf(chartsymbol)+1]"  xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24"><path d="M24 22h-24l12-20z"/></svg>
+                    <svg   @click="chartsymbol=$parent.ticker_symbols[$parent.ticker_symbols.indexOf(chartsymbol)?$parent.ticker_symbols.indexOf(chartsymbol)-1:$parent.ticker_symbols.length-1]"  style="transform: rotate(180deg)" xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24"><path d="M24 22h-24l12-20z"/></svg>
+                        <svg  style="transform: rotate(180deg)" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"><path d="M17.554 12l-6 6h-3.979l3.093-3h-10.668v-6h10.668l-3.093-3h3.979l6 6zm.446-6h-3.979l6 6-6 6h3.979l6-6-6-6z"/></svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"><path d="M17.554 12l-6 6h-3.979l3.093-3h-10.668v-6h10.668l-3.093-3h3.979l6 6zm.446-6h-3.979l6 6-6 6h3.979l6-6-6-6z"/></svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24"><path d="M24 20.188l-8.315-8.209 8.2-8.282-3.697-3.697-8.212 8.318-8.31-8.203-3.666 3.666 8.321 8.24-8.206 8.313 3.666 3.666 8.237-8.318 8.285 8.203z"/></svg>
+                        </div>
+
     </div>
 </div>`
             }
@@ -839,7 +856,6 @@
             run_clock() {
                 if (this.gameover) {
                     return
-                    // if(this.gameclock)this.gameclock;
                 }
                 let now = new Date().getTime();
                 // console.log(Math.floor(Math.floor((this.end-now)/1000)%60))
@@ -847,7 +863,7 @@
                 if (this.end - now <= 0) this.gameover = 1
             },
             async get_price_from_cryptocompare() {
-                if (this.gameover) return
+                // if (this.gameover) return
                 // if (!this.c_price) return console.log('Price data not in sync.');
                 // console.log(this.ticker_symbols)
                 if (this.ticker_symbols.length) {
@@ -870,6 +886,34 @@
                                     });
                                 }
                             });
+                            // await get_hourly_from_cryptocompare(symbol).then(async datapoints => {
+                            //     if (records = datapoints.length) {
+                            //         await cryptxgang_db.data.bulkAdd(datapoints.map(g => ({ ...g, symbol, freq: 360, platform: 'cryptocompare' }))).then(function (lastKey) {
+                            //             console.log(datapoints.length + ' cryptocompare hourly records added for ' + symbol + '.')
+                            //             // console.log("Done adding 100,000 raindrops all over the place");
+                            //             console.log("Last datapoint id was: " + lastKey); // Will be 100000.
+                            //         }).catch(Dexie.BulkError, function (e) {
+                            //             // console.log('errors', records - e.failures.length)
+                            //             // Explicitely catching the bulkAdd() operation makes those successful
+                            //             // additions commit despite that there were errors.
+                            //             console.error('Some transactions did not succeed. ' + Number(records - e.failures.length) + ' cryptocompare hourly records added successfully for ' + symbol + '.');
+                            //         });
+                            //     }
+                            // });
+                            // await get_daily_from_cryptocompare(symbol).then(async datapoints => {
+                            //     if (records = datapoints.length) {
+                            //         await cryptxgang_db.data.bulkAdd(datapoints.map(g => ({ ...g, symbol, freq: 24, platform: 'cryptocompare' }))).then(function (lastKey) {
+                            //             console.log(datapoints.length + ' cryptocompare hourly records added for ' + symbol + '.')
+                            //             // console.log("Done adding 100,000 raindrops all over the place");
+                            //             console.log("Last datapoint id was: " + lastKey); // Will be 100000.
+                            //         }).catch(Dexie.BulkError, function (e) {
+                            //             // console.log('errors', records - e.failures.length)
+                            //             // Explicitely catching the bulkAdd() operation makes those successful
+                            //             // additions commit despite that there were errors.
+                            //             console.error('Some transactions did not succeed. ' + Number(records - e.failures.length) + ' cryptocompare hourly records added successfully for ' + symbol + '.');
+                            //         });
+                            //     }
+                            // });
                             return Promise.resolve(null);
                         })
                     }, Promise.resolve(null))
@@ -881,7 +925,6 @@
             }
         },
         async mounted() {
-            console.log('foo')
             cryptxgang_db = new Dexie("cryptxgang_db");
             cryptxgang_db.version(1).stores({
                 settings: 'name,value',
@@ -893,21 +936,24 @@
                     switch (change.type) {
                         case 1: // CREATED
                             console.log('An object was created: ' + JSON.stringify(change.obj));
-                            Promise.all(app.ticker_symbols.map(async e => await cryptxgang_db.data.where('symbol').equals(e).toArray())).then(datapoints => app.datapoints = [].concat(...datapoints))
+                            // Promise.all(app.ticker_symbols.map(async e => await cryptxgang_db.data.where('symbol').equals(e).toArray())).then(datapoints => app.datapoints = [].concat(...datapoints))
                             break;
                         case 2: // UPDATED
                             if (change.key === "tickers") app.internal_ticker_symbols = change.mods;
                             console.log('An object with key ' + change.key + ' was updated with modifications: ' + JSON.stringify(change.mods));
-                            Promise.all(app.ticker_symbols.map(async e => await cryptxgang_db.data.where('symbol').equals(e).toArray())).then(datapoints => app.datapoints = [].concat(...datapoints))
+                            // Promise.all(app.ticker_symbols.map(async e => await cryptxgang_db.data.where('symbol').equals(e).toArray())).then(datapoints => app.datapoints = [].concat(...datapoints))
                             break;
                         case 3: // DELETED
                             console.log('An object was deleted: ' + JSON.stringify(change.oldObj));
-                            Promise.all(app.ticker_symbols.map(async e => await cryptxgang_db.data.where('symbol').equals(e).toArray())).then(datapoints => app.datapoints = [].concat(...datapoints))
+                            // Promise.all(app.ticker_symbols.map(async e => await cryptxgang_db.data.where('symbol').equals(e).toArray())).then(datapoints => app.datapoints = [].concat(...datapoints))
                             break;
                         default:
                             break;
                     }
+                    Promise.all(app.ticker_symbols.map(async e => await cryptxgang_db.data.where('symbol').equals(e).toArray())).then(datapoints => app.datapoints = [].concat(...datapoints))
                 });
+                console.log('foo')
+
             });
             new Promise(async function (resolve, reject) {
                 await cryptxgang_db.settings.get('tickers').then(async e => {
@@ -924,7 +970,7 @@
 
                     let foobar = await Promise.all(app.ticker_symbols.map(async e => await cryptxgang_db.data.where('symbol').equals(e).toArray()))
                     // Promise.all(app.ticker_symbols.map(async e => await cryptxgang_db.data.where('symbol').equals(e).toArray())).then(e => console.log(e))
-                    console.log(app.datapoints = [].concat(...foobar));
+                    app.datapoints = [].concat(...foobar);
                     return
 
 
@@ -974,6 +1020,14 @@
         }
     });
 
+    function get_cryptocompare_daily(symbol) {
+        console.log('getting daily data for ' + symbol + ' from cryptocompare...')
+        return fetch(`https://min-api.cryptocompare.com/data/v2/histoday?fsym=${symbol}&tsym=USD&limit=299`).then(e => e.json()).then(e => e.Data)
+    }
+    function get_cryptocompare_hourly(symbol) {
+        console.log('getting hourly data for ' + symbol + ' from cryptocompare...')
+        return fetch(`https://min-api.cryptocompare.com/data/v2/histohour?fsym=${symbol}&tsym=USD&limit=299`).then(e => e.json()).then(e => e.Data)
+    }
     function get_cryptocompare_minutely(symbol) {
         console.log('getting minutely data for ' + symbol + ' from cryptocompare...')
         return fetch(`https://min-api.cryptocompare.com/data/v2/histominute?fsym=${symbol}&tsym=USD&limit=299`).then(e => e.json()).then(e => e.Data)
@@ -990,6 +1044,42 @@
                     bar = await foo.keys().length;
                 if (!bar) {
                     let baz = await get_cryptocompare_minutely(symbol);
+                    console.log({ When: (When = Now), TimeTo: (TimeTo[symbol] = baz.TimeTo) })
+                    return Promise.resolve(baz.Data);
+                }
+            };
+            return Promise.resolve([]);
+        }
+    }())
+    const get_hourly_from_cryptocompare = (function () {
+        let TimeTo = {}, When = 0;
+        return async function (symbol) {
+            // console.log({symbol})
+            let Now = Math.round(Date.now() / 1000 + Number.EPSILON), Then = (TimeTo[symbol] || (TimeTo[symbol] = 0)) + 360;
+            // console.log([Now,When,Then,When < Then , Now >= Then])
+            if (When >= Then || Now >= Then) {
+                let foo = await cryptxgang_db.data.where('symbol').equals(symbol).and(dp => dp.freq === 360 && Now < dp.time + 360),
+                    bar = await foo.keys().length;
+                if (!bar) {
+                    let baz = await get_cryptocompare_hourly(symbol);
+                    console.log({ When: (When = Now), TimeTo: (TimeTo[symbol] = baz.TimeTo) })
+                    return Promise.resolve(baz.Data);
+                }
+            };
+            return Promise.resolve([]);
+        }
+    }())
+    const get_daily_from_cryptocompare = (function () {
+        let TimeTo = {}, When = 0;
+        return async function (symbol) {
+            // console.log({symbol})
+            let Now = Math.round(Date.now() / 1000 + Number.EPSILON), Then = (TimeTo[symbol] || (TimeTo[symbol] = 0)) + 360 * 24;
+            // console.log([Now,When,Then,When < Then , Now >= Then])
+            if (When >= Then || Now >= Then) {
+                let foo = await cryptxgang_db.data.where('symbol').equals(symbol).and(dp => dp.freq === 24 && Now < dp.time + 360 * 24),
+                    bar = await foo.keys().length;
+                if (!bar) {
+                    let baz = await get_cryptocompare_daily(symbol);
                     console.log({ When: (When = Now), TimeTo: (TimeTo[symbol] = baz.TimeTo) })
                     return Promise.resolve(baz.Data);
                 }
