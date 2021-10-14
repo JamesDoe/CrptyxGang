@@ -743,7 +743,7 @@
             </g>
 
             <!-- CANDLES -->
-            <g :fill="yscale(dp.open)-yscale(dp.close)<0?candle.up:candle.down"
+            <g :fill="yscale(dp.open)-yscale(dp.close)<0?candle.down:candle.up"
                 v-for="dp, i in freq">
                 <!-- WICK -->
                 <rect style="shape-rendering:crispEdges" :y="yscale(dp.high)" :x='xscale(dp.time)-(candle.wick.width/2)'
